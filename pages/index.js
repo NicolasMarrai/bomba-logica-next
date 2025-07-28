@@ -32,34 +32,26 @@ export default function Home() {
       setEnviado(true);
       setAlerta(true);
 
-      // Pré-carrega o áudio
+      // Toca o áudio imediatamente
       const audio = new Audio('/alerta.mp3');
-      audio.load();
-      
-      const playAudio = () => {
-        audio.play().catch(e => {
-          console.error("Falha ao reproduzir áudio:", e);
-          // Fallback para dispositivos móveis
-          if (e.name === 'NotAllowedError') {
-            alert("⚠️ ALARME! DISPOSITIVO COMPROMETIDO!");
-          }
-        });
-      };
+      audio.play().catch(e => {
+        console.error("Falha ao reproduzir áudio:", e);
+        if (e.name === 'NotAllowedError') {
+          alert("⚠️ ALARME! DISPOSITIVO COMPROMETIDO!");
+        }
+      });
 
-      // Alarme toca após 1 segundo (1000ms)
-      setTimeout(playAudio, 1000);
-
-      // Transição para tela de ataque após 1.5s
+      // Transição para tela de ataque após 2s (tempo suficiente para ler o alerta)
       setTimeout(() => {
         setAlerta(false);
         setAtaque(true);
-      }, 1500);
+      }, 2000);
 
-      // Mensagem final após 5s
+      // Mensagem final após 6s (tempo suficiente para ler a tela de ataque)
       setTimeout(() => {
         setAtaque(false);
         setFinal(true);
-      }, 5000);
+      }, 6000);
 
     } catch (error) {
       console.error("Erro ao salvar no Firebase:", error);
