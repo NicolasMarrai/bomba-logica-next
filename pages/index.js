@@ -21,6 +21,7 @@ export default function Home() {
     }
 
     try {
+      // Envia para o Firebase
       await push(ref(database, 'nomes'), {
         nome: nome,
         sobrenome: sobrenome,
@@ -45,16 +46,20 @@ export default function Home() {
         });
       };
 
+      // Alarme toca após 1 segundo (1000ms)
+      setTimeout(playAudio, 1000);
+
+      // Transição para tela de ataque após 1.5s
       setTimeout(() => {
         setAlerta(false);
         setAtaque(true);
-        playAudio();
+      }, 1500);
 
-        setTimeout(() => {
-          setAtaque(false);
-          setFinal(true);
-        }, 4000);
-      }, 4000);
+      // Mensagem final após 5s
+      setTimeout(() => {
+        setAtaque(false);
+        setFinal(true);
+      }, 5000);
 
     } catch (error) {
       console.error("Erro ao salvar no Firebase:", error);
@@ -62,7 +67,7 @@ export default function Home() {
     }
   };
 
-  // Estilos responsivos
+  // Estilos (mantidos iguais ao seu código original)
   const styles = {
     container: {
       fontFamily: "'Segoe UI', Roboto, sans-serif",
