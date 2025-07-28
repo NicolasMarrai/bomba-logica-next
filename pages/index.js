@@ -1,7 +1,7 @@
-// pages/index.js
 import { useState } from 'react';
 import { ref, push } from 'firebase/database';
 import { database } from '../lib/firebase';
+import Head from 'next/head';
 
 export default function Home() {
   const [enviado, setEnviado] = useState(false);
@@ -31,10 +31,24 @@ export default function Home() {
       setEnviado(true);
       setAlerta(true);
 
+      // Pré-carrega o áudio
+      const audio = new Audio('/alerta.mp3');
+      audio.load();
+      
+      const playAudio = () => {
+        audio.play().catch(e => {
+          console.error("Falha ao reproduzir áudio:", e);
+          // Fallback para dispositivos móveis
+          if (e.name === 'NotAllowedError') {
+            alert("⚠️ ALARME! DISPOSITIVO COMPROMETIDO!");
+          }
+        });
+      };
+
       setTimeout(() => {
         setAlerta(false);
         setAtaque(true);
-        new Audio('/alerta.mp3').play();
+        playAudio();
 
         setTimeout(() => {
           setAtaque(false);
@@ -94,7 +108,7 @@ export default function Home() {
       boxSizing: 'border-box',
       background: 'rgba(255,255,255,0.9)',
       boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.1)',
-      color: '#000' // Adicionado para garantir texto preto
+      color: '#000'
     },
     button: {
       padding: '15px',
@@ -172,6 +186,11 @@ export default function Home() {
 
   return (
     <div style={styles.container}>
+      <Head>
+        <meta name="theme-color" content="#121212"/>
+        <link rel="preload" href="/alerta.mp3" as="audio"/>
+      </Head>
+
       {!enviado && (
         <div style={styles.formContainer}>
           <h1 style={styles.title}>Projeto Educativo: Bomba-Lógica</h1>
@@ -242,7 +261,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Adicionando estilos globais inline */}
       <style jsx global>{`
         @keyframes pulse {
           0% { opacity: 0.9; }
@@ -253,11 +271,11 @@ export default function Home() {
           margin: 0;
           padding: 0;
           color: white;
-          transition: background 0.3s ease; /* Adicionado para transição suave */
+          transition: background 0.3s ease;
         }
         input:focus {
           outline: none;
-          box-shadow: 0 0 0 2px rgba(0, 97, 255, 0.5);
+          boxShadow: 0 0 0 2px rgba(0, 97, 255, 0.5);
         }
       `}</style>
     </div>
