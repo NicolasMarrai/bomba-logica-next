@@ -21,7 +21,6 @@ export default function Home() {
     }
 
     try {
-      // Envia para o Firebase
       await push(ref(database, 'nomes'), {
         nome: nome,
         sobrenome: sobrenome,
@@ -49,91 +48,176 @@ export default function Home() {
     }
   };
 
-  return (
-    <div style={{ 
-      fontFamily: 'Arial, sans-serif', 
-      textAlign: 'center', 
+  // Estilos responsivos
+  const styles = {
+    container: {
+      fontFamily: "'Segoe UI', Roboto, sans-serif",
+      textAlign: 'center',
       padding: '20px',
-      maxWidth: '600px',
-      margin: '0 auto'
-    }}>
+      maxWidth: '100%',
+      minHeight: '100vh',
+      margin: '0 auto',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      boxSizing: 'border-box'
+    },
+    formContainer: {
+      background: 'linear-gradient(145deg, #1a1a1a, #2d2d2d)',
+      padding: '25px',
+      borderRadius: '15px',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+      border: '1px solid rgba(255,255,255,0.1)',
+      maxWidth: '450px',
+      margin: '0 auto',
+      width: '90%'
+    },
+    title: {
+      color: '#fff',
+      fontSize: 'clamp(1.5rem, 5vw, 2rem)',
+      marginBottom: '15px',
+      textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+    },
+    subtitle: {
+      color: '#aaa',
+      fontSize: 'clamp(0.9rem, 3vw, 1.1rem)',
+      marginBottom: '25px',
+      lineHeight: '1.5'
+    },
+    input: {
+      padding: '15px',
+      fontSize: '16px',
+      borderRadius: '10px',
+      border: 'none',
+      marginBottom: '15px',
+      width: '100%',
+      boxSizing: 'border-box',
+      background: 'rgba(255,255,255,0.9)',
+      boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.1)'
+    },
+    button: {
+      padding: '15px',
+      background: 'linear-gradient(135deg, #0061ff, #60efff)',
+      color: 'white',
+      border: 'none',
+      borderRadius: '10px',
+      cursor: 'pointer',
+      fontSize: '16px',
+      fontWeight: '600',
+      width: '100%',
+      boxShadow: '0 4px 15px rgba(0, 97, 255, 0.3)',
+      transition: 'transform 0.2s, box-shadow 0.2s'
+    },
+    alertBox: {
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      background: 'linear-gradient(145deg, #ff0000, #8b0000)',
+      color: 'white',
+      padding: '25px',
+      fontSize: 'clamp(1rem, 4vw, 1.4rem)',
+      borderRadius: '15px',
+      boxShadow: '0 10px 30px rgba(255,0,0,0.4)',
+      zIndex: 1000,
+      width: '85%',
+      maxWidth: '400px',
+      textAlign: 'center',
+      border: '2px solid rgba(255,255,255,0.2)'
+    },
+    attackScreen: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      background: 'linear-gradient(45deg, #000000, #3a0000)',
+      color: '#ff4d4d',
+      fontSize: 'clamp(1.2rem, 5vw, 1.8rem)',
+      fontWeight: 'bold',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column',
+      textAlign: 'center',
+      animation: 'pulse 0.8s infinite alternate',
+      zIndex: 9999,
+      padding: '20px',
+      lineHeight: '1.4'
+    },
+    finalMessage: {
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      background: 'linear-gradient(145deg, #000000, #1a1a1a)',
+      color: '#ff4d4d',
+      padding: '30px',
+      fontSize: 'clamp(1rem, 4vw, 1.4rem)',
+      fontWeight: 'bold',
+      borderRadius: '15px',
+      textAlign: 'center',
+      zIndex: 9999,
+      width: '85%',
+      maxWidth: '400px',
+      boxShadow: '0 10px 30px rgba(255,0,0,0.3)',
+      border: '2px solid rgba(255,0,0,0.2)'
+    },
+    closeHint: {
+      color: 'rgba(255,255,255,0.7)',
+      fontSize: '0.8rem',
+      marginTop: '20px'
+    }
+  };
+
+  return (
+    <div style={styles.container}>
       {!enviado && (
-        <form onSubmit={enviarFormulario} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <h2>Projeto Educativo: Bomba-Lógica</h2>
-          <p>Preencha seu nome abaixo. Ao enviar, você estará participando de uma simulação educativa.</p>
+        <div style={styles.formContainer}>
+          <h1 style={styles.title}>Projeto Educativo: Bomba-Lógica</h1>
+          <p style={styles.subtitle}>
+            Preencha seu nome abaixo para participar de uma simulação educativa sobre segurança digital.
+          </p>
 
-          <input
-            type="text"
-            placeholder="Nome"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            style={{ padding: '10px', fontSize: '16px' }}
-            required
-          />
+          <form onSubmit={enviarFormulario} style={{ display: 'flex', flexDirection: 'column' }}>
+            <input
+              type="text"
+              placeholder="Nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              style={styles.input}
+              required
+            />
 
-          <input
-            type="text"
-            placeholder="Sobrenome"
-            value={sobrenome}
-            onChange={(e) => setSobrenome(e.target.value)}
-            style={{ padding: '10px', fontSize: '16px' }}
-            required
-          />
+            <input
+              type="text"
+              placeholder="Sobrenome"
+              value={sobrenome}
+              onChange={(e) => setSobrenome(e.target.value)}
+              style={styles.input}
+              required
+            />
 
-          <button 
-            type="submit"
-            style={{
-              padding: '10px',
-              background: '#0070f3',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '16px'
-            }}
-          >
-            Enviar
-          </button>
-        </form>
+            <button 
+              type="submit"
+              style={styles.button}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              ATIVAR SIMULAÇÃO
+            </button>
+          </form>
+        </div>
       )}
 
       {alerta && (
-        <div style={{
-          position: 'fixed',
-          top: '40%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          backgroundColor: 'black',
-          color: 'red',
-          padding: '30px',
-          fontSize: '22px',
-          borderRadius: '10px',
-          boxShadow: '0 0 20px red',
-          zIndex: 1000
-        }}>
+        <div style={styles.alertBox}>
           {mensagem}
         </div>
       )}
 
       {ataque && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'black',
-          color: 'red',
-          fontSize: '24px',
-          fontWeight: 'bold',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexDirection: 'column',
-          textAlign: 'center',
-          animation: 'piscar 0.8s infinite',
-          zIndex: 9999
-        }}>
+        <div style={styles.attackScreen}>
           ⚠️ ATENÇÃO! SEU DISPOSITIVO FOI COMPROMETIDO!
           <br /><br />
           VOCÊ CLICOU EM UM LINK DESCONHECIDO SEM SABER A ORIGEM.
@@ -142,20 +226,7 @@ export default function Home() {
 
       {final && (
         <div 
-          style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: 'black',
-            color: 'red',
-            padding: '30px',
-            fontSize: '20px',
-            fontWeight: 'bold',
-            borderRadius: '10px',
-            textAlign: 'center',
-            zIndex: 9999
-          }}
+          style={styles.finalMessage}
           onClick={() => {
             setFinal(false);
             setEnviado(false);
@@ -165,13 +236,29 @@ export default function Home() {
         >
           VIU COMO É FÁCIL TE ENGANAR?
           <br /><br />
-          TOME CUIDADO AO ESCANEAR QR CODES,
-          <br />
-          OU SEU DISPOSITIVO PODE SER DANIFICADO.
+          TOME CUIDADO AO ESCANEAR QR CODES OU CLICAR EM LINKS DESCONHECIDOS.
           <br /><br />
-          <small>(Clique para fechar)</small>
+          <span style={styles.closeHint}>(Toque para fechar)</span>
         </div>
       )}
+
+      {/* Adicionando estilos globais inline */}
+      <style jsx global>{`
+        @keyframes pulse {
+          0% { opacity: 0.9; }
+          100% { opacity: 1; }
+        }
+        body {
+          background: #121212;
+          margin: 0;
+          padding: 0;
+          color: white;
+        }
+        input:focus {
+          outline: none;
+          box-shadow: 0 0 0 2px rgba(0, 97, 255, 0.5);
+        }
+      `}</style>
     </div>
   );
 }
