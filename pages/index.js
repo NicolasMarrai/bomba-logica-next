@@ -93,7 +93,8 @@ export default function Home() {
       width: '100%',
       boxSizing: 'border-box',
       background: 'rgba(255,255,255,0.9)',
-      boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.1)'
+      boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.1)',
+      color: '#000' // Adicionado para garantir texto preto
     },
     button: {
       padding: '15px',
@@ -140,7 +141,6 @@ export default function Home() {
       alignItems: 'center',
       flexDirection: 'column',
       textAlign: 'center',
-      animation: 'pulse 0.8s infinite alternate',
       zIndex: 9999,
       padding: '20px',
       lineHeight: '1.4'
@@ -253,6 +253,7 @@ export default function Home() {
           margin: 0;
           padding: 0;
           color: white;
+          transition: background 0.3s ease; /* Adicionado para transição suave */
         }
         input:focus {
           outline: none;
