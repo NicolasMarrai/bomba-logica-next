@@ -96,8 +96,7 @@ export default function Admin() {
           <table style={styles.table}>
             <thead>
               <tr style={styles.tableHeaderRow}>
-                <th style={styles.tableHeader}>Nome</th>
-                <th style={styles.tableHeader}>Sobrenome</th>
+                <th style={styles.tableHeader}>Nome Completo</th>
                 <th style={styles.tableHeader}>Data/Hora</th>
                 <th style={styles.tableHeader}>Ações</th>
               </tr>
@@ -106,7 +105,6 @@ export default function Admin() {
               {cadastros.map((pessoa) => (
                 <tr key={pessoa.id} style={styles.tableRow}>
                   <td style={styles.tableCell}>{pessoa.nome}</td>
-                  <td style={styles.tableCell}>{pessoa.sobrenome}</td>
                   <td style={styles.tableCell}>
                     {new Date(pessoa.timestamp).toLocaleString('pt-BR')}
                   </td>
@@ -162,10 +160,10 @@ const styles = {
     border: '1px solid #ddd',
     borderRadius: '8px',
     outline: 'none',
-    transition: 'border 0.3s',
-    ':focus': {
-      borderColor: '#4CAF50'
-    }
+    transition: 'border 0.3s'
+  },
+  loginInputFocus: {
+    borderColor: '#4CAF50'
   },
   loginButton: {
     padding: '12px',
@@ -176,10 +174,10 @@ const styles = {
     cursor: 'pointer',
     fontSize: '16px',
     fontWeight: '600',
-    transition: 'background 0.3s',
-    ':hover': {
-      background: '#45a049'
-    }
+    transition: 'background 0.3s'
+  },
+  loginButtonHover: {
+    background: '#45a049'
   },
   adminContainer: {
     padding: '2rem',
@@ -209,10 +207,10 @@ const styles = {
     cursor: 'pointer',
     fontSize: '16px',
     fontWeight: '600',
-    transition: 'background 0.3s',
-    ':hover': {
-      background: '#d32f2f'
-    }
+    transition: 'background 0.3s'
+  },
+  logoutButtonHover: {
+    background: '#d32f2f'
   },
   loading: {
     display: 'flex',
@@ -243,10 +241,10 @@ const styles = {
     fontWeight: '600'
   },
   tableRow: {
-    borderBottom: '1px solid #eee',
-    ':hover': {
-      backgroundColor: '#f9f9f9'
-    }
+    borderBottom: '1px solid #eee'
+  },
+  tableRowHover: {
+    backgroundColor: '#f9f9f9'
   },
   tableCell: {
     padding: '15px',
@@ -261,9 +259,9 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: '500',
-    transition: 'background 0.3s',
-    ':hover': {
-      background: '#e68a00'
-    }
+    transition: 'background 0.3s'
+  },
+  deleteButtonHover: {
+    background: '#e68a00'
   }
 };
