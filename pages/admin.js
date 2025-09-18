@@ -8,7 +8,7 @@ export default function Admin() {
   const [autenticado, setAutenticado] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const SENHA_ADMIN = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+  const SENHA_ADMIN = process.env.ADMIN_PASSWORD;
 
   useEffect(() => {
     if (autenticado) {
