@@ -2,10 +2,8 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import Link from 'next/link';
-// Importe sua instância do database do firebase
-// import { database } from '../lib/firebase';
-// import { ref, set } from 'firebase/database';
-// import { v4 as uuidv4 } from 'uuid'; // Para gerar IDs únicos
+// Importa a função correta para salvar os dados
+import { saveSubmission } from '../../lib/firebase'; 
 
 // --- TIPAGEM DOS DADOS DO FORMULÁRIO ---
 interface FormData {
@@ -49,13 +47,13 @@ export default function LogicBombPage() {
       // Simulação de delay
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // --- LÓGICA DE ENVIO PARA O FIREBASE (REALTIME DATABASE) ---
-      // const payloadId = uuidv4();
-      // await set(ref(database, 'payloads/' + payloadId), {
-      //   ...formData,
-      //   timestamp: new Date().toISOString()
-      // });
-      
+      // --- LÓGICA DE ENVIO USANDO A FUNÇÃO CENTRALIZADA ---
+      await saveSubmission(
+        formData.agentName,
+        formData.secretCode,
+        formData.message
+      );
+
       console.log('Payload enviado:', formData);
       setStatus('PAYLOAD_DELIVERED');
     } catch (error) {
@@ -117,6 +115,17 @@ export default function LogicBombPage() {
                   required
                   className="w-full bg-gray-900/50 border-2 border-green-500/30 p-3 rounded-md focus:outline-none focus:border-green-400 caret-green-400"
                   placeholder="********"
+                />
+              </div>
+              <div>
+                <label htmlFor="message" className="block text-sm font-bold mb-2">{'>'} PAYLOAD_MESSAGE (OPTIONAL)</label>
+                <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full bg-gray-900/50 border-2 border-green-500/30 p-3 rounded-md focus:outline-none focus:border-green-400 caret-green-400"
+                  placeholder="INSIRA SUA MENSAGEM SECRETA..."
                 />
               </div>
               <button

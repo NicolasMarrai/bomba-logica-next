@@ -1,7 +1,22 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ShieldWarning, QrCode, FishSimple } from '@phosphor-icons/react/dist/ssr';
+import { ShieldWarning, QrCode, FishSimple } from '@phosphor-icons/react';
+import SorteioModal from '../../../components/ui/SorteioModal';
 
 export default function AwarenessPage() {
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    // Este timer faz o modal aparecer 2 segundos após a página carregar
+    const timer = setTimeout(() => {
+      setShowModal(true);
+    }, 2000);
+
+    return () => clearTimeout(timer); // Limpa o timer se o componente for desmontado
+  }, []);
+
   return (
     <main className="flex items-center justify-center min-h-screen text-gray-200 p-4">
       <div className="w-full max-w-4xl bg-gray-900/80 border border-yellow-400/50 p-8 rounded-lg shadow-lg">
@@ -43,6 +58,10 @@ export default function AwarenessPage() {
           </div>
         </div>
       </div>
+      
+      {/* O modal de sorteio aparecerá sobre este conteúdo */}
+      {showModal && <SorteioModal onClose={() => setShowModal(false)} />}
     </main>
   );
 }
+
