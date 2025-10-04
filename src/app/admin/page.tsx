@@ -1,9 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getAdminDashboardData, updatePrizeCount } from '../../../lib/firebase'; // Ajuste o caminho se necessário
-import { Lock, FloppyDisk, Users, Gift, Eye } from '@phosphor-icons/react/dist/ssr';
+import { getAdminDashboardData, updatePrizeCount } from '../../../lib/firebase';
+import { Lock, FloppyDisk, Users, Gift } from '@phosphor-icons/react/dist/ssr';
 
+/**
+ * @interface Submission
+ * @description Define a estrutura de um registro de submissão para a listagem no painel.
+ */
 interface Submission {
   id: string;
   agentId: string;
@@ -12,7 +16,13 @@ interface Submission {
   payloadMessage: string;
 }
 
+/**
+ * @component AdminPage
+ * @description Painel de administração para visualizar submissões e gerenciar o estoque de prêmios.
+ * @returns {JSX.Element}
+ */
 export default function AdminPage() {
+  // --- ESTADOS DE AUTENTICAÇÃO E DADOS ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,8 +32,13 @@ export default function AdminPage() {
   const [newPrizeCount, setNewPrizeCount] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
+  // A senha é carregada a partir de variáveis de ambiente para segurança.
   const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
+  /**
+   * @function fetchData
+   * @description Busca os dados do dashboard (submissões e prêmios) da API do Firebase.
+   */
   const fetchData = async () => {
     setIsLoading(true);
     try {
@@ -39,12 +54,17 @@ export default function AdminPage() {
     }
   };
 
+  // Efeito que busca os dados assim que o usuário é autenticado.
   useEffect(() => {
     if (isAuthenticated) {
       fetchData();
     }
   }, [isAuthenticated]);
 
+  /**
+   * @function handleLogin
+   * @description Valida a senha inserida pelo usuário e libera o acesso ao painel.
+   */
   const handleLogin = () => {
     if (password === correctPassword) {
       setIsAuthenticated(true);
@@ -54,6 +74,10 @@ export default function AdminPage() {
     }
   };
 
+  /**
+   * @function handlePrizeUpdate
+   * @description Atualiza a contagem de prêmios no banco de dados.
+   */
   const handlePrizeUpdate = async () => {
     const count = parseInt(newPrizeCount, 10);
     if (!isNaN(count) && count >= 0) {
@@ -62,6 +86,7 @@ export default function AdminPage() {
         setRemainingPrizes(count);
         alert('Estoque de prêmios atualizado com sucesso!');
       } catch (e) {
+        console.error("Falha ao atualizar o estoque:", e);
         alert('Falha ao atualizar o estoque.');
       }
     } else {
@@ -69,6 +94,7 @@ export default function AdminPage() {
     }
   };
 
+  // --- TELA DE LOGIN ---
   if (!isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
@@ -99,6 +125,7 @@ export default function AdminPage() {
     );
   }
 
+  // --- PAINEL PRINCIPAL ---
   return (
     <main className="min-h-screen bg-gray-900 text-gray-200 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">

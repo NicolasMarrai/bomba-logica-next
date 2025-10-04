@@ -5,16 +5,23 @@ import Link from 'next/link';
 import { ShieldWarning, QrCode, FishSimple } from '@phosphor-icons/react';
 import SorteioModal from '../../../components/ui/SorteioModal';
 
+/**
+ * @component AwarenessPage
+ * @description Página de conscientização que explica os perigos da engenharia social e golpes de QR Code.
+ * @returns {JSX.Element}
+ */
 export default function AwarenessPage() {
+  // Estado para controlar a visibilidade do modal de sorteio.
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    // Este timer faz o modal aparecer 2 segundos após a página carregar
+    // Este timer faz o modal aparecer 10 segundos após a página carregar, incentivando a leitura.
     const timer = setTimeout(() => {
       setShowModal(true);
     }, 10000);
 
-    return () => clearTimeout(timer); // Limpa o timer se o componente for desmontado
+    // Limpa o timer se o componente for desmontado para evitar vazamentos de memória.
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -59,9 +66,8 @@ export default function AwarenessPage() {
         </div>
       </div>
       
-      {/* O modal de sorteio aparecerá sobre este conteúdo */}
+      {/* O modal de sorteio aparecerá sobre este conteúdo após o timer */}
       {showModal && <SorteioModal onClose={() => setShowModal(false)} />}
     </main>
   );
 }
-

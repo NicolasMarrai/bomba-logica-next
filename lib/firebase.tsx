@@ -1,7 +1,9 @@
+
 import { initializeApp, getApp, getApps, FirebaseApp } from "firebase/app";
 import { getDatabase, Database, ref, runTransaction, get, set, child, push } from "firebase/database";
 import { getAuth, signInAnonymously, onAuthStateChanged, Auth, User } from "firebase/auth";
 
+// --- CONFIGURAÇÃO DO FIREBASE ---
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -21,6 +23,11 @@ const auth: Auth = getAuth(app);
 export { database, auth };
 
 // --- LÓGICA DE AUTENTICAÇÃO ANÔNIMA ---
+/**
+ * @function getAnonymousUser
+ * @description Garante que o usuário esteja autenticado anonimamente e retorna o objeto de usuário.
+ * @returns {Promise<User>} O usuário autenticado.
+ */
 export const getAnonymousUser = (): Promise<User> => {
   return new Promise((resolve) => {
     if (auth.currentUser) {
@@ -39,6 +46,14 @@ export const getAnonymousUser = (): Promise<User> => {
 };
 
 // --- LÓGICA DE SUBMISSÃO DO FORMULÁRIO ---
+/**
+ * @function saveSubmission
+ * @description Salva os dados de uma submissão de formulário no banco de dados.
+ * @param {string} agentId - O ID do agente que está submetendo.
+ * @param {string} activationCode - O código de ativação inserido.
+ * @param {string} payloadMessage - A mensagem (payload) enviada.
+ * @returns {Promise<void>}
+ */
 export const saveSubmission = async (agentId: string, activationCode: string, payloadMessage: string) => {
     const user = await getAnonymousUser();
     const submissionData = {
@@ -54,12 +69,24 @@ export const saveSubmission = async (agentId: string, activationCode: string, pa
 
 
 // --- LÓGICA DO SORTEIO ---
+/**
+ * @interface SorteioResult
+ * @description Define a estrutura do objeto de resultado do sorteio.
+ * @property {boolean} won - Indica se o usuário ganhou o prêmio.
+ * @property {string} message - A mensagem a ser exibida para o usuário.
+ * @property {boolean} alreadyPlayed - Indica se o usuário já participou do sorteio.
+ */
 interface SorteioResult {
   won: boolean;
   message: string;
   alreadyPlayed: boolean;
 }
 
+/**
+ * @function handleSorteio
+ * @description Processa a participação de um usuário no sorteio, verificando se ele já jogou e determinando se ganhou um prêmio.
+ * @returns {Promise<SorteioResult>} O resultado do sorteio.
+ */
 export const handleSorteio = async (): Promise<SorteioResult> => {
   const user = await getAnonymousUser();
   if (!user) throw new Error("Autenticação anônima falhou.");
@@ -76,8 +103,9 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
   let wonPrize = false;
 
   await runTransaction(prizesRef, (currentData) => {
-    if (currentData === null) return { remaining: 30 };
+    if (currentData === null) return { remaining: 30 }; // Valor inicial de prêmios
     if (currentData.remaining > 0) {
+      // 25% de chance de ganhar
       if (Math.random() <= 0.25) { 
         currentData.remaining--;
         wonPrize = true;
@@ -89,6 +117,7 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
     return currentData;
   });
 
+  // Registra a participação do usuário para evitar múltiplas tentativas
   await set(participantRef, { playedAt: new Date().toISOString(), wonPrize });
   return result;
 };
@@ -96,6 +125,11 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
 
 // --- FUNÇÕES DO PAINEL DE ADMIN ---
 
+/**
+ * @function getAdminDashboardData
+ * @description Busca e combina dados de submissões, participantes e prêmios para o painel de administração.
+ * @returns {Promise<{submissions: any[], remainingPrizes: number}>} Os dados consolidados para o dashboard.
+ */
 export const getAdminDashboardData = async () => {
     const submissionsRef = ref(database, 'submissions');
     const participantsRef = ref(database, 'participants');
@@ -109,6 +143,7 @@ export const getAdminDashboardData = async () => {
     const participants = participantsSnap.val() || {};
     const remainingPrizes = prizesSnap.val() || 0;
     
+    // Combina os dados de submissão com a informação de prêmio do participante
     const combinedData = Object.keys(submissions).map(key => {
         const submission = submissions[key];
         const participantInfo = participants[submission.userId] || { wonPrize: false };
@@ -122,6 +157,12 @@ export const getAdminDashboardData = async () => {
     return { submissions: combinedData, remainingPrizes };
 };
 
+/**
+ * @function updatePrizeCount
+ * @description Atualiza a contagem de prêmios restantes no banco de dados.
+ * @param {number} newCount - O novo número de prêmios.
+ * @returns {Promise<void>}
+ */
 export const updatePrizeCount = (newCount: number) => {
     const prizesRef = ref(database, 'prizes/remaining');
     return set(prizesRef, newCount);

@@ -4,18 +4,32 @@ import { useState, useEffect } from 'react';
 import { Gift, X, Hourglass } from '@phosphor-icons/react';
 import { handleSorteio } from '../../lib/firebase';
 
-// 1. Definimos a "planta" das propriedades (props) que o componente espera.
-// Aqui dizemos que ele DEVE receber uma função chamada 'onClose'.
+/**
+ * @interface SorteioModalProps
+ * @description Define as propriedades que o componente SorteioModal espera receber.
+ * @property {() => void} onClose - Função a ser chamada quando o modal for fechado.
+ */
 interface SorteioModalProps {
   onClose: () => void;
 }
 
-// 2. Usamos a planta para definir o componente.
+/**
+ * @component SorteioModal
+ * @description Modal que realiza um sorteio surpresa para o usuário.
+ * @param {SorteioModalProps} { onClose } - As propriedades do componente.
+ * @returns {JSX.Element}
+ */
 export default function SorteioModal({ onClose }: SorteioModalProps) {
+  // Estado para controlar o carregamento do sorteio.
   const [loading, setLoading] = useState(true);
+  // Estado para armazenar o resultado do sorteio.
   const [result, setResult] = useState<{ won: boolean; message: string } | null>(null);
 
   useEffect(() => {
+    /**
+     * @function performSorteio
+     * @description Função assíncrona que executa a lógica do sorteio.
+     */
     const performSorteio = async () => {
       try {
         const sorteioResult = await handleSorteio();
@@ -24,7 +38,7 @@ export default function SorteioModal({ onClose }: SorteioModalProps) {
         console.error("Erro no sorteio:", error);
         setResult({ won: false, message: "Ocorreu um erro no sistema. Tente novamente." });
       } finally {
-        // Adiciona um delay de 2 segundos para criar suspense
+        // Adiciona um delay de 2 segundos para criar suspense antes de mostrar o resultado.
         setTimeout(() => {
           setLoading(false);
         }, 2000);
@@ -37,8 +51,9 @@ export default function SorteioModal({ onClose }: SorteioModalProps) {
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-gray-800 border border-yellow-500 rounded-lg shadow-xl w-full max-w-md text-center p-6 relative animate-fade-in">
+        {/* Botão para fechar o modal */}
         <button 
-          onClick={onClose} // 3. O botão de fechar agora usa a função que veio de fora.
+          onClick={onClose}
           className="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors"
         >
           <X size={24} />
@@ -49,6 +64,7 @@ export default function SorteioModal({ onClose }: SorteioModalProps) {
           Sorteio Surpresa!
         </h2>
         
+        {/* Exibido enquanto o sorteio está em andamento */}
         {loading && (
           <div className="space-y-4 my-8">
             <div className="flex justify-center">
@@ -58,6 +74,7 @@ export default function SorteioModal({ onClose }: SorteioModalProps) {
           </div>
         )}
 
+        {/* Exibido após o sorteio ser concluído */}
         {!loading && result && (
           <div className="space-y-4 my-8">
             <p className={`text-xl font-bold ${result.won ? 'text-green-400' : 'text-red-400'}`}>
