@@ -29,7 +29,7 @@ export default function LogicBombPage() {
   // Máquina de estados para controlar a UI: AWAITING_INPUT | TRANSMITTING_PAYLOAD | PAYLOAD_DELIVERED | SYSTEM_LOCKDOWN
   const [status, setStatus] = useState<string>('AWAITING_INPUT');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [countdown, setCountdown] = useState<number>(300); // 5 minutos em segundos
+  const [countdown, setCountdown] = useState<number>(180); // 3 minutos em segundos
 
   // --- EFEITO PARA O CRONÔMETRO REGRESSIVO ---
   useEffect(() => {
