@@ -12,7 +12,7 @@ export default function AwarenessPage() {
     // Este timer faz o modal aparecer 2 segundos após a página carregar
     const timer = setTimeout(() => {
       setShowModal(true);
-    }, 2000);
+    }, 10000);
 
     return () => clearTimeout(timer); // Limpa o timer se o componente for desmontado
   }, []);
