@@ -14,6 +14,8 @@ interface Submission {
   timestamp: string;
   wonPrize: boolean;
   payloadMessage: string;
+  userId: string;
+  systemInfo: string;
 }
 
 /**
@@ -76,7 +78,8 @@ export default function AdminPage() {
 
   /**
    * @function handlePrizeUpdate
-   * @description Atualiza a contagem de prêmios no banco de dados.
+   * @description Envia a nova contagem de prêmios para o Firebase e atualiza o estado local
+   * para refletir a mudança na interface.
    */
   const handlePrizeUpdate = async () => {
     const count = parseInt(newPrizeCount, 10);
@@ -159,6 +162,8 @@ export default function AdminPage() {
                 <thead>
                   <tr className="border-b border-gray-700">
                     <th className="p-2">Agente ID</th>
+                    <th className="p-2">User ID</th>
+                    <th className="p-2">Sistema</th>
                     <th className="p-2">Data/Hora</th>
                     <th className="p-2 text-center">Ganhou Prêmio?</th>
                     <th className="p-2">Mensagem</th>
@@ -168,6 +173,8 @@ export default function AdminPage() {
                   {submissions.map(sub => (
                     <tr key={sub.id} className="border-b border-gray-700/50 hover:bg-gray-700/50">
                       <td className="p-2 font-mono">{sub.agentId}</td>
+                      <td className="p-2 font-mono text-xs">{sub.userId}</td>
+                      <td className="p-2 font-mono text-xs">{sub.systemInfo}</td>
                       <td className="p-2">{new Date(sub.timestamp).toLocaleString('pt-BR')}</td>
                       <td className="p-2 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${sub.wonPrize ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>

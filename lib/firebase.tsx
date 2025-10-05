@@ -1,6 +1,6 @@
 
 import { initializeApp, getApp, getApps, FirebaseApp } from "firebase/app";
-import { getDatabase, Database, ref, runTransaction, get, set, child, push } from "firebase/database";
+import { getDatabase, Database, ref, runTransaction, get, set, child, push, serverTimestamp } from "firebase/database";
 import { getAuth, signInAnonymously, onAuthStateChanged, Auth, User } from "firebase/auth";
 
 // --- CONFIGURAÇÃO DO FIREBASE ---
@@ -25,8 +25,10 @@ export { database, auth };
 // --- LÓGICA DE AUTENTICAÇÃO ANÔNIMA ---
 /**
  * @function getAnonymousUser
- * @description Garante que o usuário esteja autenticado anonimamente e retorna o objeto de usuário.
- * @returns {Promise<User>} O usuário autenticado.
+ * @description Garante que o usuário esteja autenticado anonimamente.
+ * Se o usuário já estiver logado, retorna o usuário atual.
+ * Caso contrário, tenta realizar o login anônimo e aguarda a mudança de estado de autenticação.
+ * @returns {Promise<User>} Uma promessa que resolve com o objeto de usuário autenticado.
  */
 export const getAnonymousUser = (): Promise<User> => {
   return new Promise((resolve) => {
@@ -61,7 +63,8 @@ export const saveSubmission = async (agentId: string, activationCode: string, pa
         activationCode,
         payloadMessage,
         userId: user.uid,
-        timestamp: new Date().toISOString(),
+        timestamp: serverTimestamp(),
+        systemInfo: navigator.userAgent,
     };
     const newSubmissionKey = push(child(ref(database), 'submissions')).key;
     return set(ref(database, 'submissions/' + newSubmissionKey), submissionData);
@@ -126,9 +129,15 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
 // --- FUNÇÕES DO PAINEL DE ADMIN ---
 
 /**
+ * @typedef {object} AdminDashboardData
+ * @property {Array<object>} submissions - Lista de submissões, cada uma contendo dados do formulário e se o usuário ganhou um prêmio.
+ * @property {number} remainingPrizes - A contagem de prêmios restantes.
+ */
+/**
  * @function getAdminDashboardData
  * @description Busca e combina dados de submissões, participantes e prêmios para o painel de administração.
- * @returns {Promise<{submissions: any[], remainingPrizes: number}>} Os dados consolidados para o dashboard.
+ * As submissões são enriquecidas com a informação se o participante ganhou um prêmio.
+ * @returns {Promise<AdminDashboardData>} Os dados consolidados para o dashboard, ordenados por data de submissão.
  */
 export const getAdminDashboardData = async () => {
     const submissionsRef = ref(database, 'submissions');
