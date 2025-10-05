@@ -9,6 +9,8 @@ import {
   child,
   push,
   serverTimestamp,
+  onValue,
+  off,
 } from "firebase/database";
 import {
   getAuth,
@@ -18,6 +20,25 @@ import {
   User,
 } from "firebase/auth";
 import { UAParser } from "ua-parser-js";
+
+// --- INTERFACES ---
+interface SubmissionData {
+  agentId: string;
+  activationCode: string;
+  payloadMessage: string;
+  userId: string;
+  timestamp: string;
+  systemInfo: {
+    browser: string;
+    os: string;
+    device: string;
+  };
+}
+
+interface ParticipantData {
+  playedAt: string;
+  wonPrize: boolean;
+}
 
 // --- CONFIGURAÇÃO DO FIREBASE ---
 const firebaseConfig = {
@@ -240,4 +261,79 @@ export const getAdminDashboardData = async () => {
 export const updatePrizeCount = (newCount: number) => {
   const prizesRef = ref(database, "prizes/remaining");
   return set(prizesRef, newCount);
+};
+
+/**
+ * @function subscribeToAdminDashboard
+ * @description Inscreve-se para receber atualizações em tempo real dos dados do dashboard de admin.
+ * @param {function} callback - Função a ser chamada quando os dados forem atualizados.
+ * @returns {function} Função para cancelar a inscrição (unsubscribe).
+ */
+export const subscribeToAdminDashboard = (
+  callback: (data: {
+    submissions: Array<
+      SubmissionData & { id: string; wonPrize: boolean }
+    >;
+    remainingPrizes: number;
+  }) => void
+) => {
+  const submissionsRef = ref(database, "submissions");
+  const participantsRef = ref(database, "participants");
+  const prizesRef = ref(database, "prizes/remaining");
+
+  let submissionsData: Record<string, SubmissionData> = {};
+  let participantsData: Record<string, ParticipantData> = {};
+  let prizesData: number = 0;
+
+  const updateCallback = () => {
+    const submissions = submissionsData || {};
+    const participants = participantsData || {};
+
+    const combinedData = Object.keys(submissions)
+      .map((key) => {
+        const submission = submissions[key];
+        const participantInfo = participants[submission.userId] || {
+          wonPrize: false,
+        };
+        return {
+          id: key,
+          ...submission,
+          wonPrize: participantInfo.wonPrize,
+        };
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+    callback({
+      submissions: combinedData,
+      remainingPrizes: prizesData,
+    });
+  };
+
+  // Escuta mudanças nas submissões
+  onValue(submissionsRef, (snapshot) => {
+    submissionsData = snapshot.val() || {};
+    updateCallback();
+  });
+
+  // Escuta mudanças nos participantes
+  onValue(participantsRef, (snapshot) => {
+    participantsData = snapshot.val() || {};
+    updateCallback();
+  });
+
+  // Escuta mudanças nos prêmios
+  onValue(prizesRef, (snapshot) => {
+    prizesData = snapshot.val() || 0;
+    updateCallback();
+  });
+
+  // Retorna função para cancelar todas as inscrições
+  return () => {
+    off(submissionsRef);
+    off(participantsRef);
+    off(prizesRef);
+  };
 };

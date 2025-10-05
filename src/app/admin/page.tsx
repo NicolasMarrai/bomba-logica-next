@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAdminDashboardData, updatePrizeCount } from "../../../lib/firebase";
+import {
+  updatePrizeCount,
+  subscribeToAdminDashboard,
+} from "../../../lib/firebase";
 import { Lock, FloppyDisk, Users, Gift } from "@phosphor-icons/react/dist/ssr";
 
 /**
@@ -41,29 +44,23 @@ export default function AdminPage() {
   // A senha é carregada a partir de variáveis de ambiente para segurança.
   const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
-  /**
-   * @function fetchData
-   * @description Busca os dados do dashboard (submissões e prêmios) da API do Firebase.
-   */
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      const data = await getAdminDashboardData();
-      setSubmissions(data.submissions);
-      setRemainingPrizes(data.remainingPrizes);
-      setNewPrizeCount(String(data.remainingPrizes));
-    } catch (e) {
-      console.error("Failed to fetch admin data:", e);
-      setError("Failed to load dashboard data.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Efeito que busca os dados assim que o usuário é autenticado.
+  // Efeito que se inscreve para atualizações em tempo real assim que o usuário é autenticado.
   useEffect(() => {
     if (isAuthenticated) {
-      fetchData();
+      setIsLoading(true);
+
+      // Inscreve-se para atualizações em tempo real
+      const unsubscribe = subscribeToAdminDashboard((data) => {
+        setSubmissions(data.submissions);
+        setRemainingPrizes(data.remainingPrizes);
+        setNewPrizeCount(String(data.remainingPrizes));
+        setIsLoading(false);
+      });
+
+      // Limpa a inscrição quando o componente for desmontado ou o usuário deslogar
+      return () => {
+        unsubscribe();
+      };
     }
   }, [isAuthenticated]);
 
