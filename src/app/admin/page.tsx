@@ -15,7 +15,11 @@ interface Submission {
   wonPrize: boolean;
   payloadMessage: string;
   userId: string;
-  systemInfo: string;
+  systemInfo: {
+    browser: string;
+    os: string;
+    device: string;
+  };
 }
 
 /**
@@ -174,7 +178,13 @@ export default function AdminPage() {
                     <tr key={sub.id} className="border-b border-gray-700/50 hover:bg-gray-700/50">
                       <td className="p-2 font-mono">{sub.agentId}</td>
                       <td className="p-2 font-mono text-xs">{sub.userId}</td>
-                      <td className="p-2 font-mono text-xs">{sub.systemInfo}</td>
+                      <td className="p-2 font-mono text-xs">
+                        {sub.systemInfo ? (
+                            `${sub.systemInfo.browser} on ${sub.systemInfo.os} (${sub.systemInfo.device})`
+                        ) : (
+                            'N/A'
+                        )}
+                        </td>
                       <td className="p-2">{new Date(sub.timestamp).toLocaleString('pt-BR')}</td>
                       <td className="p-2 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${sub.wonPrize ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
