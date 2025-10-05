@@ -2,6 +2,7 @@
 import { initializeApp, getApp, getApps, FirebaseApp } from "firebase/app";
 import { getDatabase, Database, ref, runTransaction, get, set, child, push, serverTimestamp } from "firebase/database";
 import { getAuth, signInAnonymously, onAuthStateChanged, Auth, User } from "firebase/auth";
+import { UAParser } from 'ua-parser-js';
 
 // --- CONFIGURAÇÃO DO FIREBASE ---
 const firebaseConfig = {
@@ -47,6 +48,22 @@ export const getAnonymousUser = (): Promise<User> => {
   });
 };
 
+// --- LÓGICA DE INFORMAÇÕES DO SISTEMA ---
+/**
+ * @function getSystemInfo
+ * @description Analisa a string do user agent para extrair informações legíveis sobre o sistema.
+ * @returns {object} Um objeto contendo o navegador, SO e tipo de dispositivo.
+ */
+const getSystemInfo = () => {
+    const parser = new UAParser();
+    const result = parser.getResult();
+    return {
+        browser: result.browser.name,
+        os: result.os.name,
+        device: result.device.type || 'desktop', // O padrão é 'desktop' se não for identificado
+    };
+};
+
 // --- LÓGICA DE SUBMISSÃO DO FORMULÁRIO ---
 /**
  * @function saveSubmission
@@ -64,7 +81,7 @@ export const saveSubmission = async (agentId: string, activationCode: string, pa
         payloadMessage,
         userId: user.uid,
         timestamp: serverTimestamp(),
-        systemInfo: navigator.userAgent,
+        systemInfo: getSystemInfo(),
     };
     const newSubmissionKey = push(child(ref(database), 'submissions')).key;
     return set(ref(database, 'submissions/' + newSubmissionKey), submissionData);
