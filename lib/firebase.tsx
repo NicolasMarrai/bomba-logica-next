@@ -107,7 +107,7 @@ const getSystemInfo = () => {
     device:
       `${result.device.vendor || ""} ${result.device.model || ""}`.trim() ||
       result.device.type ||
-      "Dispositivo",
+      "desktop",
   };
 };
 
