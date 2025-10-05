@@ -1,8 +1,23 @@
-
 import { initializeApp, getApp, getApps, FirebaseApp } from "firebase/app";
-import { getDatabase, Database, ref, runTransaction, get, set, child, push, serverTimestamp } from "firebase/database";
-import { getAuth, signInAnonymously, onAuthStateChanged, Auth, User } from "firebase/auth";
-import { UAParser } from 'ua-parser-js';
+import {
+  getDatabase,
+  Database,
+  ref,
+  runTransaction,
+  get,
+  set,
+  child,
+  push,
+  serverTimestamp,
+} from "firebase/database";
+import {
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged,
+  Auth,
+  User,
+} from "firebase/auth";
+import { UAParser } from "ua-parser-js";
 
 // --- CONFIGURAÇÃO DO FIREBASE ---
 const firebaseConfig = {
@@ -17,7 +32,9 @@ const firebaseConfig = {
 };
 
 // --- INICIALIZAÇÃO E EXPORTAÇÕES PRINCIPAIS ---
-const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app: FirebaseApp = !getApps().length
+  ? initializeApp(firebaseConfig)
+  : getApp();
 const database: Database = getDatabase(app);
 const auth: Auth = getAuth(app);
 
@@ -43,7 +60,9 @@ export const getAnonymousUser = (): Promise<User> => {
       }
     });
     if (!auth.currentUser) {
-        signInAnonymously(auth).catch(error => console.error("Falha no login anônimo:", error));
+      signInAnonymously(auth).catch((error) =>
+        console.error("Falha no login anônimo:", error)
+      );
     }
   });
 };
@@ -55,13 +74,20 @@ export const getAnonymousUser = (): Promise<User> => {
  * @returns {object} Um objeto contendo o navegador, SO e tipo de dispositivo.
  */
 const getSystemInfo = () => {
-    const parser = new UAParser();
-    const result = parser.getResult();
-    return {
-        browser: result.browser.name,
-        os: result.os.name,
-        device: result.device.type || 'desktop', // O padrão é 'desktop' se não for identificado
-    };
+  const parser = new UAParser();
+  const result = parser.getResult();
+  return {
+    browser: `${result.browser.name || "Navegador desconhecido"} ${
+      result.browser.version || ""
+    }`.trim(),
+    os: `${result.os.name || "SO desconhecido"} ${
+      result.os.version || ""
+    }`.trim(),
+    device:
+      `${result.device.vendor || ""} ${result.device.model || ""}`.trim() ||
+      result.device.type ||
+      "Dispositivo",
+  };
 };
 
 // --- LÓGICA DE SUBMISSÃO DO FORMULÁRIO ---
@@ -73,20 +99,23 @@ const getSystemInfo = () => {
  * @param {string} payloadMessage - A mensagem (payload) enviada.
  * @returns {Promise<void>}
  */
-export const saveSubmission = async (agentId: string, activationCode: string, payloadMessage: string) => {
-    const user = await getAnonymousUser();
-    const submissionData = {
-        agentId,
-        activationCode,
-        payloadMessage,
-        userId: user.uid,
-        timestamp: serverTimestamp(),
-        systemInfo: getSystemInfo(),
-    };
-    const newSubmissionKey = push(child(ref(database), 'submissions')).key;
-    return set(ref(database, 'submissions/' + newSubmissionKey), submissionData);
+export const saveSubmission = async (
+  agentId: string,
+  activationCode: string,
+  payloadMessage: string
+) => {
+  const user = await getAnonymousUser();
+  const submissionData = {
+    agentId,
+    activationCode,
+    payloadMessage,
+    userId: user.uid,
+    timestamp: serverTimestamp(),
+    systemInfo: getSystemInfo(),
+  };
+  const newSubmissionKey = push(child(ref(database), "submissions")).key;
+  return set(ref(database, "submissions/" + newSubmissionKey), submissionData);
 };
-
 
 // --- LÓGICA DO SORTEIO ---
 /**
@@ -112,24 +141,37 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
   if (!user) throw new Error("Autenticação anônima falhou.");
 
   const participantRef = ref(database, `participants/${user.uid}`);
-  const prizesRef = ref(database, 'prizes');
-  
+  const prizesRef = ref(database, "prizes");
+
   const snapshot = await get(participantRef);
   if (snapshot.exists()) {
-    return { won: false, message: "Você já tentou a sua sorte, agente.", alreadyPlayed: true };
+    return {
+      won: false,
+      message: "Você já tentou a sua sorte, agente.",
+      alreadyPlayed: true,
+    };
   }
 
-  let result: SorteioResult = { won: false, message: "Não foi desta vez. Mas seus dados foram... analisados.", alreadyPlayed: false };
+  let result: SorteioResult = {
+    won: false,
+    message: "Não foi desta vez. Mas seus dados foram... analisados.",
+    alreadyPlayed: false,
+  };
   let wonPrize = false;
 
   await runTransaction(prizesRef, (currentData) => {
     if (currentData === null) return { remaining: 30 }; // Valor inicial de prêmios
     if (currentData.remaining > 0) {
       // 25% de chance de ganhar
-      if (Math.random() <= 0.25) { 
+      if (Math.random() <= 0.25) {
         currentData.remaining--;
         wonPrize = true;
-        result = { won: true, message: "PARABÉNS! Seu payload continha um prêmio. Resgate seu Sonho de Valsa com a equipe.", alreadyPlayed: false };
+        result = {
+          won: true,
+          message:
+            "PARABÉNS! Seu payload continha um prêmio. Resgate seu Sonho de Valsa com a equipe.",
+          alreadyPlayed: false,
+        };
       }
     } else {
       result.message = "Os prêmios acabaram, mas a conscientização fica!";
@@ -141,7 +183,6 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
   await set(participantRef, { playedAt: new Date().toISOString(), wonPrize });
   return result;
 };
-
 
 // --- FUNÇÕES DO PAINEL DE ADMIN ---
 
@@ -157,30 +198,37 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
  * @returns {Promise<AdminDashboardData>} Os dados consolidados para o dashboard, ordenados por data de submissão.
  */
 export const getAdminDashboardData = async () => {
-    const submissionsRef = ref(database, 'submissions');
-    const participantsRef = ref(database, 'participants');
-    const prizesRef = ref(database, 'prizes/remaining');
+  const submissionsRef = ref(database, "submissions");
+  const participantsRef = ref(database, "participants");
+  const prizesRef = ref(database, "prizes/remaining");
 
-    const submissionsSnap = await get(submissionsRef);
-    const participantsSnap = await get(participantsRef);
-    const prizesSnap = await get(prizesRef);
+  const submissionsSnap = await get(submissionsRef);
+  const participantsSnap = await get(participantsRef);
+  const prizesSnap = await get(prizesRef);
 
-    const submissions = submissionsSnap.val() || {};
-    const participants = participantsSnap.val() || {};
-    const remainingPrizes = prizesSnap.val() || 0;
-    
-    // Combina os dados de submissão com a informação de prêmio do participante
-    const combinedData = Object.keys(submissions).map(key => {
-        const submission = submissions[key];
-        const participantInfo = participants[submission.userId] || { wonPrize: false };
-        return {
-            id: key,
-            ...submission,
-            wonPrize: participantInfo.wonPrize,
-        };
-    }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); // Ordena do mais novo para o mais antigo
+  const submissions = submissionsSnap.val() || {};
+  const participants = participantsSnap.val() || {};
+  const remainingPrizes = prizesSnap.val() || 0;
 
-    return { submissions: combinedData, remainingPrizes };
+  // Combina os dados de submissão com a informação de prêmio do participante
+  const combinedData = Object.keys(submissions)
+    .map((key) => {
+      const submission = submissions[key];
+      const participantInfo = participants[submission.userId] || {
+        wonPrize: false,
+      };
+      return {
+        id: key,
+        ...submission,
+        wonPrize: participantInfo.wonPrize,
+      };
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    ); // Ordena do mais novo para o mais antigo
+
+  return { submissions: combinedData, remainingPrizes };
 };
 
 /**
@@ -190,7 +238,6 @@ export const getAdminDashboardData = async () => {
  * @returns {Promise<void>}
  */
 export const updatePrizeCount = (newCount: number) => {
-    const prizesRef = ref(database, 'prizes/remaining');
-    return set(prizesRef, newCount);
+  const prizesRef = ref(database, "prizes/remaining");
+  return set(prizesRef, newCount);
 };
-
