@@ -3,7 +3,7 @@ import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
 /**
- * @description Configuração da fonte IBM Plex Mono para ser usada em toda a aplicação, 
+ * @description Configuração da fonte IBM Plex Mono para ser usada em toda a aplicação,
  * garantindo uma estética de terminal.
  */
 const ibmPlexMono = IBM_Plex_Mono({
@@ -16,7 +16,8 @@ const ibmPlexMono = IBM_Plex_Mono({
  */
 export const metadata: Metadata = {
   title: "Bomba Lógica - ENTEC 2025",
-  description: "Um experimento de cibersegurança sobre os perigos dos QR Codes.",
+  description:
+    "Um experimento de cibersegurança sobre os perigos dos QR Codes.",
 };
 
 /**
@@ -27,8 +28,8 @@ export const metadata: Metadata = {
  */
 export default function RootLayout({
   children,
-}: Readonly<{ 
-  children: React.ReactNode; 
+}: Readonly<{
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="pt-br">
