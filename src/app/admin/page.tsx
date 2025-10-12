@@ -6,7 +6,7 @@ import {
   subscribeToAdminDashboard,
   clearAllData,
 } from "../../../lib/firebase";
-import { Lock, FloppyDisk, Users, Gift, TrendUp, CheckCircle, XCircle, ChartBar, Trash, Warning } from "@phosphor-icons/react/dist/ssr";
+import { Lock, FloppyDisk, Users, Gift, TrendUp, CheckCircle, XCircle, ChartBar, Trash, Warning, Eye, EyeSlash } from "@phosphor-icons/react/dist/ssr";
 
 /**
  * @interface Submission
@@ -44,9 +44,33 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showClearModal, setShowClearModal] = useState(false);
   const [clearConfirmText, setClearConfirmText] = useState("");
+  const [hideEmails, setHideEmails] = useState(false);
+  const [hidePhones, setHidePhones] = useState(false);
 
   // A senha é carregada a partir de variáveis de ambiente para segurança.
   const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+
+  /**
+   * @function maskEmail
+   * @description Mascara o email para apresentações, mostrando apenas o primeiro caractere e o domínio.
+   */
+  const maskEmail = (email: string) => {
+    if (!email) return "N/A";
+    const [local, domain] = email.split("@");
+    if (!domain) return "***@***";
+    return `${local[0]}***@${domain}`;
+  };
+
+  /**
+   * @function maskPhone
+   * @description Mascara o telefone para apresentações, mostrando apenas os últimos 4 dígitos.
+   */
+  const maskPhone = (phone: string) => {
+    if (!phone) return "N/A";
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 4) return "***";
+    return `(***) ***-${digits.slice(-4)}`;
+  };
 
   // Efeito que se inscreve para atualizações em tempo real assim que o usuário é autenticado.
   useEffect(() => {
@@ -280,9 +304,58 @@ export default function AdminPage() {
 
         {/* Seção de Logs de Submissão */}
         <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Users size={28} /> Participantes do Sorteio
-          </h2>
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Users size={28} /> Participantes do Sorteio
+            </h2>
+            
+            {/* Botões para ocultar/mostrar dados sensíveis */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setHideEmails(!hideEmails)}
+                className={`flex items-center gap-2 font-bold py-2 px-4 rounded-md transition-colors ${
+                  hideEmails
+                    ? "bg-green-600 hover:bg-green-700 text-white"
+                    : "bg-gray-700 hover:bg-gray-600 text-gray-200"
+                }`}
+                title={hideEmails ? "Mostrar emails" : "Ocultar emails"}
+              >
+                {hideEmails ? (
+                  <>
+                    <Eye size={20} weight="bold" />
+                    Mostrar Emails
+                  </>
+                ) : (
+                  <>
+                    <EyeSlash size={20} weight="bold" />
+                    Ocultar Emails
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => setHidePhones(!hidePhones)}
+                className={`flex items-center gap-2 font-bold py-2 px-4 rounded-md transition-colors ${
+                  hidePhones
+                    ? "bg-green-600 hover:bg-green-700 text-white"
+                    : "bg-gray-700 hover:bg-gray-600 text-gray-200"
+                }`}
+                title={hidePhones ? "Mostrar telefones" : "Ocultar telefones"}
+              >
+                {hidePhones ? (
+                  <>
+                    <Eye size={20} weight="bold" />
+                    Mostrar Telefones
+                  </>
+                ) : (
+                  <>
+                    <EyeSlash size={20} weight="bold" />
+                    Ocultar Telefones
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
 
           {/* Resumo Rápido */}
           {!isLoading && submissions.length > 0 && (
@@ -338,8 +411,15 @@ export default function AdminPage() {
                       className="border-b border-gray-700/50 hover:bg-gray-700/50"
                     >
                       <td className="p-2">{sub.name}</td>
-                      <td className="p-2 font-mono text-sm">{sub.email}</td>
-                      <td className="p-2">{sub.phone || "N/A"}</td>
+                      <td className="p-2 font-mono text-sm">
+                        {hideEmails ? maskEmail(sub.email) : sub.email}
+                      </td>
+                      <td className="p-2">
+                        {sub.phone 
+                          ? (hidePhones ? maskPhone(sub.phone) : sub.phone)
+                          : "N/A"
+                        }
+                      </td>
                       <td className="p-2 font-mono text-xs">
                         {sub.systemInfo
                           ? `${sub.systemInfo.browser} on ${sub.systemInfo.os}`
