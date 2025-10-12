@@ -330,7 +330,7 @@ export const validateRedeemCode = async (code: string): Promise<{
 
   // Busca o participante com o código fornecido
   const participantEntry = Object.entries(participants).find(
-    ([, data]: [string, any]) => data.redeemCode === code.toUpperCase()
+    ([, data]) => (data as ParticipantData).redeemCode === code.toUpperCase()
   );
 
   if (!participantEntry) {
@@ -352,7 +352,7 @@ export const validateRedeemCode = async (code: string): Promise<{
   const submissions = submissionsSnap.val() || {};
   
   const submission = Object.values(submissions).find(
-    (sub: any) => sub.userId === userId
+    (sub) => (sub as SubmissionData).userId === userId
   ) as SubmissionData | undefined;
 
   // Marca como resgatado
