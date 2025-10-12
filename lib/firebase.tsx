@@ -23,9 +23,9 @@ import { UAParser } from "ua-parser-js";
 
 // --- INTERFACES ---
 interface SubmissionData {
-  agentId: string;
-  activationCode: string;
-  payloadMessage: string;
+  name: string;
+  email: string;
+  phone: string;
   userId: string;
   timestamp: string;
   systemInfo: {
@@ -115,21 +115,21 @@ const getSystemInfo = () => {
 /**
  * @function saveSubmission
  * @description Salva os dados de uma submissão de formulário no banco de dados.
- * @param {string} agentId - O ID do agente que está submetendo.
- * @param {string} activationCode - O código de ativação inserido.
- * @param {string} payloadMessage - A mensagem (payload) enviada.
+ * @param {string} name - O nome do participante.
+ * @param {string} email - O email do participante.
+ * @param {string} phone - O telefone do participante (opcional).
  * @returns {Promise<void>}
  */
 export const saveSubmission = async (
-  agentId: string,
-  activationCode: string,
-  payloadMessage: string
+  name: string,
+  email: string,
+  phone: string
 ) => {
   const user = await getAnonymousUser();
   const submissionData = {
-    agentId,
-    activationCode,
-    payloadMessage,
+    name,
+    email,
+    phone,
     userId: user.uid,
     timestamp: serverTimestamp(),
     systemInfo: getSystemInfo(),
@@ -168,14 +168,14 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
   if (snapshot.exists()) {
     return {
       won: false,
-      message: "Você já tentou a sua sorte, agente.",
+      message: "Você já participou do sorteio anteriormente!",
       alreadyPlayed: true,
     };
   }
 
   let result: SorteioResult = {
     won: false,
-    message: "Não foi desta vez. Mas seus dados foram... analisados.",
+    message: "Não foi desta vez, mas obrigado por participar! Continue atento às dicas de segurança.",
     alreadyPlayed: false,
   };
   let wonPrize = false;
@@ -190,12 +190,12 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
         result = {
           won: true,
           message:
-            "PARABÉNS! Seu payload continha um prêmio. Resgate seu Sonho de Valsa com a equipe.",
+            "VOCÊ GANHOU um delicioso Sonho de Valsa! 🍫 Mostre esta tela para resgatar seu prêmio.",
           alreadyPlayed: false,
         };
       }
     } else {
-      result.message = "Os prêmios acabaram, mas a conscientização fica!";
+      result.message = "Os prêmios acabaram, mas você ganhou conhecimento sobre segurança digital!";
     }
     return currentData;
   });
@@ -261,6 +261,23 @@ export const getAdminDashboardData = async () => {
 export const updatePrizeCount = (newCount: number) => {
   const prizesRef = ref(database, "prizes/remaining");
   return set(prizesRef, newCount);
+};
+
+/**
+ * @function clearAllData
+ * @description Remove todos os dados de submissões e participantes do banco de dados.
+ * ATENÇÃO: Esta é uma operação destrutiva e irreversível!
+ * @returns {Promise<void>}
+ */
+export const clearAllData = async () => {
+  const submissionsRef = ref(database, "submissions");
+  const participantsRef = ref(database, "participants");
+  
+  // Remove todas as submissões
+  await set(submissionsRef, null);
+  
+  // Remove todos os participantes
+  await set(participantsRef, null);
 };
 
 /**

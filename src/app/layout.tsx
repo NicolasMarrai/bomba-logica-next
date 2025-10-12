@@ -15,9 +15,21 @@ const ibmPlexMono = IBM_Plex_Mono({
  * @description Metadados da página, importantes para SEO e para o navegador.
  */
 export const metadata: Metadata = {
-  title: "Bomba Lógica - ENTEC 2025",
+  title: "Sorteio Relâmpago - ENTEC 2025",
   description:
-    "Um experimento de cibersegurança sobre os perigos dos QR Codes.",
+    "Projeto educacional sobre segurança digital e conscientização contra golpes de sorteios falsos.",
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: '/apple-touch-icon.svg',
+  },
+  openGraph: {
+    title: "Sorteio Relâmpago - ENTEC 2025",
+    description: "Aprenda sobre segurança digital de forma interativa",
+    type: "website",
+  },
 };
 
 /**
