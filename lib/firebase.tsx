@@ -38,6 +38,9 @@ interface SubmissionData {
 interface ParticipantData {
   playedAt: string;
   wonPrize: boolean;
+  redeemCode?: string;
+  redeemed?: boolean;
+  redeemedAt?: string;
 }
 
 // --- CONFIGURAÇÃO DO FIREBASE ---
@@ -145,12 +148,28 @@ export const saveSubmission = async (
  * @property {boolean} won - Indica se o usuário ganhou o prêmio.
  * @property {string} message - A mensagem a ser exibida para o usuário.
  * @property {boolean} alreadyPlayed - Indica se o usuário já participou do sorteio.
+ * @property {string} [redeemCode] - Código de resgate de 4 caracteres para ganhadores.
  */
 interface SorteioResult {
   won: boolean;
   message: string;
   alreadyPlayed: boolean;
+  redeemCode?: string;
 }
+
+/**
+ * @function generateRedeemCode
+ * @description Gera um código único de 4 caracteres alfanuméricos.
+ * @returns {string} Código de resgate único.
+ */
+const generateRedeemCode = (): string => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclui letras/números confusos (I, O, 0, 1)
+  let code = '';
+  for (let i = 0; i < 4; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
 
 /**
  * @function handleSorteio
@@ -179,6 +198,7 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
     alreadyPlayed: false,
   };
   let wonPrize = false;
+  let redeemCode = '';
 
   await runTransaction(prizesRef, (currentData) => {
     if (currentData === null) return { remaining: 30 }; // Valor inicial de prêmios
@@ -187,11 +207,13 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
       if (Math.random() <= 0.25) {
         currentData.remaining--;
         wonPrize = true;
+        redeemCode = generateRedeemCode();
         result = {
           won: true,
           message:
-            "VOCÊ GANHOU um delicioso Sonho de Valsa! 🍫 Mostre esta tela para resgatar seu prêmio.",
+            "VOCÊ GANHOU um delicioso Sonho de Valsa! 🍫 Use o código abaixo para resgatar seu prêmio.",
           alreadyPlayed: false,
+          redeemCode,
         };
       }
     } else {
@@ -201,7 +223,15 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
   });
 
   // Registra a participação do usuário para evitar múltiplas tentativas
-  await set(participantRef, { playedAt: new Date().toISOString(), wonPrize });
+  const participantData: ParticipantData = { 
+    playedAt: new Date().toISOString(), 
+    wonPrize,
+  };
+  if (wonPrize) {
+    participantData.redeemCode = redeemCode;
+    participantData.redeemed = false;
+  }
+  await set(participantRef, participantData);
   return result;
 };
 
@@ -242,6 +272,9 @@ export const getAdminDashboardData = async () => {
         id: key,
         ...submission,
         wonPrize: participantInfo.wonPrize,
+        redeemCode: participantInfo.redeemCode,
+        redeemed: participantInfo.redeemed,
+        redeemedAt: participantInfo.redeemedAt,
       };
     })
     .sort(
@@ -281,6 +314,59 @@ export const clearAllData = async () => {
 };
 
 /**
+ * @function validateRedeemCode
+ * @description Valida um código de resgate e marca o prêmio como resgatado.
+ * @param {string} code - O código de 4 caracteres a ser validado.
+ * @returns {Promise<{success: boolean, message: string, participantName?: string}>}
+ */
+export const validateRedeemCode = async (code: string): Promise<{
+  success: boolean;
+  message: string;
+  participantName?: string;
+}> => {
+  const participantsRef = ref(database, "participants");
+  const participantsSnap = await get(participantsRef);
+  const participants = participantsSnap.val() || {};
+
+  // Busca o participante com o código fornecido
+  const participantEntry = Object.entries(participants).find(
+    ([, data]: [string, any]) => data.redeemCode === code.toUpperCase()
+  );
+
+  if (!participantEntry) {
+    return { success: false, message: "Código inválido!" };
+  }
+
+  const [userId, participantData] = participantEntry as [string, ParticipantData];
+
+  if (participantData.redeemed) {
+    return { 
+      success: false, 
+      message: "Este código já foi resgatado!" 
+    };
+  }
+
+  // Busca o nome do participante nas submissões
+  const submissionsRef = ref(database, "submissions");
+  const submissionsSnap = await get(submissionsRef);
+  const submissions = submissionsSnap.val() || {};
+  
+  const submission = Object.values(submissions).find(
+    (sub: any) => sub.userId === userId
+  ) as SubmissionData | undefined;
+
+  // Marca como resgatado
+  await set(ref(database, `participants/${userId}/redeemed`), true);
+  await set(ref(database, `participants/${userId}/redeemedAt`), new Date().toISOString());
+
+  return {
+    success: true,
+    message: "Prêmio validado com sucesso! 🎉",
+    participantName: submission?.name || "Participante",
+  };
+};
+
+/**
  * @function subscribeToAdminDashboard
  * @description Inscreve-se para receber atualizações em tempo real dos dados do dashboard de admin.
  * @param {function} callback - Função a ser chamada quando os dados forem atualizados.
@@ -316,6 +402,9 @@ export const subscribeToAdminDashboard = (
           id: key,
           ...submission,
           wonPrize: participantInfo.wonPrize,
+          redeemCode: participantInfo.redeemCode,
+          redeemed: participantInfo.redeemed,
+          redeemedAt: participantInfo.redeemedAt,
         };
       })
       .sort(

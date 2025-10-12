@@ -23,7 +23,7 @@ export default function SorteioModal({ onClose }: SorteioModalProps) {
   // Estado para controlar o carregamento do sorteio.
   const [loading, setLoading] = useState(true);
   // Estado para armazenar o resultado do sorteio.
-  const [result, setResult] = useState<{ won: boolean; message: string } | null>(null);
+  const [result, setResult] = useState<{ won: boolean; message: string; redeemCode?: string } | null>(null);
 
   useEffect(() => {
     /**
@@ -101,9 +101,23 @@ export default function SorteioModal({ onClose }: SorteioModalProps) {
               {result.message}
             </p>
             {result.won && (
-              <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-4">
+              <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-4 space-y-3">
                 <p className="text-green-300 text-sm">
-                  🍫 Mostre esta tela para a equipe e resgate seu Sonho de Valsa!
+                  🍫 Informe este código para a equipe e resgate seu Sonho de Valsa!
+                </p>
+                
+                {/* Código de Resgate em Destaque */}
+                <div className="bg-black/40 rounded-lg p-4 border-2 border-green-400">
+                  <p className="text-gray-300 text-xs uppercase tracking-wider mb-2">
+                    Código de Resgate:
+                  </p>
+                  <p className="text-5xl font-black text-green-400 tracking-[0.5em] text-center font-mono">
+                    {result.redeemCode}
+                  </p>
+                </div>
+
+                <p className="text-yellow-300 text-xs">
+                  ⚠️ Guarde este código! Ele será necessário para retirar seu prêmio.
                 </p>
               </div>
             )}

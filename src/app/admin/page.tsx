@@ -5,8 +5,9 @@ import {
   updatePrizeCount,
   subscribeToAdminDashboard,
   clearAllData,
+  validateRedeemCode,
 } from "../../../lib/firebase";
-import { Lock, FloppyDisk, Users, Gift, TrendUp, CheckCircle, XCircle, ChartBar, Trash, Warning, Eye, EyeSlash } from "@phosphor-icons/react/dist/ssr";
+import { Lock, FloppyDisk, Users, Gift, TrendUp, CheckCircle, XCircle, ChartBar, Trash, Warning, Eye, EyeSlash, Spinner } from "@phosphor-icons/react/dist/ssr";
 
 /**
  * @interface Submission
@@ -20,6 +21,9 @@ interface Submission {
   timestamp: string;
   wonPrize: boolean;
   userId: string;
+  redeemCode?: string;
+  redeemed?: boolean;
+  redeemedAt?: string;
   systemInfo: {
     browser: string;
     os: string;
@@ -46,6 +50,15 @@ export default function AdminPage() {
   const [clearConfirmText, setClearConfirmText] = useState("");
   const [hideEmails, setHideEmails] = useState(false);
   const [hidePhones, setHidePhones] = useState(false);
+  
+  // Estados para validação de código
+  const [redeemCodeInput, setRedeemCodeInput] = useState("");
+  const [validationMessage, setValidationMessage] = useState("");
+  const [validationSuccess, setValidationSuccess] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  
+  // Estado para controlar visibilidade individual de códigos
+  const [visibleCodes, setVisibleCodes] = useState<Set<string>>(new Set());
 
   // A senha é carregada a partir de variáveis de ambiente para segurança.
   const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
@@ -70,6 +83,22 @@ export default function AdminPage() {
     const digits = phone.replace(/\D/g, "");
     if (digits.length < 4) return "***";
     return `(***) ***-${digits.slice(-4)}`;
+  };
+
+  /**
+   * @function toggleCodeVisibility
+   * @description Alterna a visibilidade de um código específico.
+   */
+  const toggleCodeVisibility = (submissionId: string) => {
+    setVisibleCodes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(submissionId)) {
+        newSet.delete(submissionId);
+      } else {
+        newSet.add(submissionId);
+      }
+      return newSet;
+    });
   };
 
   // Efeito que se inscreve para atualizações em tempo real assim que o usuário é autenticado.
@@ -144,6 +173,44 @@ export default function AdminPage() {
     } catch (e) {
       console.error("Erro ao limpar dados:", e);
       alert("Erro ao limpar os dados. Verifique o console.");
+    }
+  };
+
+  /**
+   * @function handleValidateCode
+   * @description Valida um código de resgate informado pelo usuário.
+   */
+  const handleValidateCode = async () => {
+    if (!redeemCodeInput || redeemCodeInput.length !== 4) {
+      setValidationMessage("Por favor, insira um código de 4 caracteres.");
+      setValidationSuccess(false);
+      return;
+    }
+
+    setIsValidating(true);
+    setValidationMessage("");
+
+    try {
+      const result = await validateRedeemCode(redeemCodeInput);
+      setValidationSuccess(result.success);
+      
+      if (result.success) {
+        setValidationMessage(`✅ ${result.message}\nParticipante: ${result.participantName}`);
+        setRedeemCodeInput("");
+      } else {
+        setValidationMessage(`❌ ${result.message}`);
+      }
+    } catch (e) {
+      console.error("Erro ao validar código:", e);
+      setValidationMessage("❌ Erro ao validar código. Tente novamente.");
+      setValidationSuccess(false);
+    } finally {
+      setIsValidating(false);
+      
+      // Limpa a mensagem após 5 segundos
+      setTimeout(() => {
+        setValidationMessage("");
+      }, 5000);
     }
   };
 
@@ -259,6 +326,87 @@ export default function AdminPage() {
             <p className="text-white/70 text-sm mt-1">
               {submissions.filter((s) => s.wonPrize).length} já distribuídos
             </p>
+          </div>
+        </div>
+
+        {/* Seção de Validação de Códigos de Resgate */}
+        <div className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 p-6 rounded-lg mb-8 border-2 border-green-500/50 shadow-lg">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-green-400">
+            <CheckCircle size={28} weight="fill" /> Validar Código de Resgate
+          </h2>
+          
+          <div className="bg-black/30 p-4 rounded-lg mb-4">
+            <p className="text-gray-300 text-sm mb-2">
+              🎫 Digite o código de 4 caracteres informado pelo ganhador para validar e registrar a entrega do prêmio.
+            </p>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-stretch gap-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                value={redeemCodeInput}
+                onChange={(e) => setRedeemCodeInput(e.target.value.toUpperCase())}
+                onKeyPress={(e) => e.key === "Enter" && handleValidateCode()}
+                placeholder="Ex: A3B7"
+                maxLength={4}
+                className="w-full p-4 text-2xl font-mono font-bold tracking-[0.5em] text-center bg-gray-800 border-2 border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 uppercase"
+                disabled={isValidating}
+              />
+            </div>
+            
+            <button
+              onClick={handleValidateCode}
+              disabled={isValidating || !redeemCodeInput}
+              className="flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-4 px-8 rounded-md hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors md:w-auto w-full"
+            >
+              {isValidating ? (
+                <>
+                  <Spinner size={24} className="animate-spin" />
+                  Validando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={24} weight="bold" />
+                  Validar Código
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Mensagem de Feedback */}
+          {validationMessage && (
+            <div
+              className={`mt-4 p-4 rounded-lg border-2 animate-fade-in ${
+                validationSuccess
+                  ? "bg-green-500/20 border-green-500 text-green-300"
+                  : "bg-red-500/20 border-red-500 text-red-300"
+              }`}
+            >
+              <p className="font-semibold whitespace-pre-line">{validationMessage}</p>
+            </div>
+          )}
+
+          {/* Estatísticas de Resgate */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+              <p className="text-gray-400 text-sm mb-1">Prêmios Ganhos</p>
+              <p className="text-3xl font-bold text-yellow-400">
+                {submissions.filter((s) => s.wonPrize).length}
+              </p>
+            </div>
+            <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+              <p className="text-gray-400 text-sm mb-1">Prêmios Resgatados</p>
+              <p className="text-3xl font-bold text-green-400">
+                {submissions.filter((s) => s.redeemed).length}
+              </p>
+            </div>
+            <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+              <p className="text-gray-400 text-sm mb-1">Aguardando Resgate</p>
+              <p className="text-3xl font-bold text-orange-400">
+                {submissions.filter((s) => s.wonPrize && !s.redeemed).length}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -402,6 +550,8 @@ export default function AdminPage() {
                     <th className="p-2">Sistema</th>
                     <th className="p-2">Data/Hora</th>
                     <th className="p-2 text-center">Ganhou?</th>
+                    <th className="p-2 text-center">Código</th>
+                    <th className="p-2 text-center">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -438,6 +588,63 @@ export default function AdminPage() {
                         >
                           {sub.wonPrize ? "SIM" : "NÃO"}
                         </span>
+                      </td>
+                      <td className="p-2 text-center">
+                        {sub.redeemCode ? (
+                          <div className="flex items-center justify-center gap-2">
+                            {visibleCodes.has(sub.id) ? (
+                              <span className="font-mono font-bold text-lg text-yellow-400 tracking-wider">
+                                {sub.redeemCode}
+                              </span>
+                            ) : (
+                              <span className="font-mono font-bold text-lg text-gray-500 tracking-wider">
+                                ••••
+                              </span>
+                            )}
+                            <button
+                              onClick={() => toggleCodeVisibility(sub.id)}
+                              className="p-1 hover:bg-gray-600 rounded transition-colors"
+                              title={visibleCodes.has(sub.id) ? "Ocultar código" : "Mostrar código"}
+                            >
+                              {visibleCodes.has(sub.id) ? (
+                                <EyeSlash size={18} className="text-gray-400" weight="bold" />
+                              ) : (
+                                <Eye size={18} className="text-gray-400" weight="bold" />
+                              )}
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-gray-500 text-xs">—</span>
+                        )}
+                      </td>
+                      <td className="p-2 text-center">
+                        {sub.wonPrize ? (
+                          sub.redeemed ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400 flex items-center gap-1">
+                                <CheckCircle size={14} weight="fill" />
+                                RESGATADO
+                              </span>
+                              {sub.redeemedAt && (
+                                <span className="text-xs text-gray-400">
+                                  {new Date(sub.redeemedAt).toLocaleString("pt-BR", {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="px-2 py-1 rounded-full text-xs font-bold bg-orange-500/20 text-orange-400 flex items-center justify-center gap-1">
+                              <Gift size={14} weight="fill" />
+                              PENDENTE
+                            </span>
+                          )
+                        ) : (
+                          <span className="text-gray-500 text-xs">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}
