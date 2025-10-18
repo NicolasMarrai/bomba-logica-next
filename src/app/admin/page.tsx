@@ -48,8 +48,8 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showClearModal, setShowClearModal] = useState(false);
   const [clearConfirmText, setClearConfirmText] = useState("");
-  const [hideEmails, setHideEmails] = useState(false);
-  const [hidePhones, setHidePhones] = useState(false);
+  const [hideEmails, setHideEmails] = useState(true);
+  const [hidePhones, setHidePhones] = useState(true);
   
   // Estados para validação de código
   const [redeemCodeInput, setRedeemCodeInput] = useState("");
