@@ -265,6 +265,17 @@ export default function SorteioPage() {
                   <li>Criar perfis falsos em seu nome</li>
                 </ul>
               </div>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left">
+                <p className="text-red-800 font-extrabold mb-2">
+                  ⚠️ <u>IMPORTANTE:</u> 
+                </p>
+                <p className="text-red-700 font-semibold text-sm">
+                  ‼️OS DADOS INFORMADOS FORAM USADOS APENAS PARA FINS ACADÊMICOS. 
+                </p>
+                <p className="text-red-700 font-semibold text-sm">
+                  ‼️NENHUMA INFORMAÇÃO SERÁ UTILIZADA POR TERCEIROS.
+                </p>
+              </div>
             </div>
             <Link
               href="/conscientizacao"
