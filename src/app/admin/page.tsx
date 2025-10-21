@@ -7,29 +7,22 @@ import {
   clearAllData,
   validateRedeemCode,
 } from "../../../lib/firebase";
-import { Lock, FloppyDisk, Users, Gift, TrendUp, CheckCircle, XCircle, ChartBar, Trash, Warning, Eye, EyeSlash, Spinner } from "@phosphor-icons/react/dist/ssr";
-
-/**
- * @interface Submission
- * @description Define a estrutura de um registro de submissão para a listagem no painel.
- */
-interface Submission {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  timestamp: string;
-  wonPrize: boolean;
-  userId: string;
-  redeemCode?: string;
-  redeemed?: boolean;
-  redeemedAt?: string;
-  systemInfo: {
-    browser: string;
-    os: string;
-    device: string;
-  };
-}
+import {
+  Lock,
+  FloppyDisk,
+  Users,
+  Gift,
+  TrendUp,
+  CheckCircle,
+  XCircle,
+  ChartBar,
+  Trash,
+  Warning,
+  Eye,
+  EyeSlash,
+  Spinner,
+} from "@phosphor-icons/react/dist/ssr";
+import type { Submission } from "../../../types/index";
 
 /**
  * @component AdminPage
@@ -50,13 +43,13 @@ export default function AdminPage() {
   const [clearConfirmText, setClearConfirmText] = useState("");
   const [hideEmails, setHideEmails] = useState(true);
   const [hidePhones, setHidePhones] = useState(true);
-  
+
   // Estados para validação de código
   const [redeemCodeInput, setRedeemCodeInput] = useState("");
   const [validationMessage, setValidationMessage] = useState("");
   const [validationSuccess, setValidationSuccess] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
-  
+
   // Estado para controlar visibilidade individual de códigos
   const [visibleCodes, setVisibleCodes] = useState<Set<string>>(new Set());
 
@@ -193,9 +186,11 @@ export default function AdminPage() {
     try {
       const result = await validateRedeemCode(redeemCodeInput);
       setValidationSuccess(result.success);
-      
+
       if (result.success) {
-        setValidationMessage(`✅ ${result.message}\nParticipante: ${result.participantName}`);
+        setValidationMessage(
+          `✅ ${result.message}\nParticipante: ${result.participantName}`
+        );
         setRedeemCodeInput("");
       } else {
         setValidationMessage(`❌ ${result.message}`);
@@ -206,7 +201,7 @@ export default function AdminPage() {
       setValidationSuccess(false);
     } finally {
       setIsValidating(false);
-      
+
       // Limpa a mensagem após 5 segundos
       setTimeout(() => {
         setValidationMessage("");
@@ -272,7 +267,10 @@ export default function AdminPage() {
           </div>
 
           {/* Ganhadores */}
-          <div className="bg-gradient-to-br from-green-600 to-green-800 p-6 rounded-lg shadow-lg card-hover animate-slide-in-up" style={{ animationDelay: '0.1s' }}>
+          <div
+            className="bg-gradient-to-br from-green-600 to-green-800 p-6 rounded-lg shadow-lg card-hover animate-slide-in-up"
+            style={{ animationDelay: "0.1s" }}
+          >
             <div className="flex items-center justify-between mb-4">
               <CheckCircle size={40} weight="fill" className="text-white/80" />
               <Gift size={24} className="text-white/60" />
@@ -285,14 +283,21 @@ export default function AdminPage() {
             </p>
             <p className="text-white/70 text-sm mt-1">
               {submissions.length > 0
-                ? `${((submissions.filter((s) => s.wonPrize).length / submissions.length) * 100).toFixed(1)}%`
+                ? `${(
+                    (submissions.filter((s) => s.wonPrize).length /
+                      submissions.length) *
+                    100
+                  ).toFixed(1)}%`
                 : "0%"}{" "}
               de vitórias
             </p>
           </div>
 
           {/* Não Ganhadores */}
-          <div className="bg-gradient-to-br from-red-600 to-red-800 p-6 rounded-lg shadow-lg card-hover animate-slide-in-up" style={{ animationDelay: '0.2s' }}>
+          <div
+            className="bg-gradient-to-br from-red-600 to-red-800 p-6 rounded-lg shadow-lg card-hover animate-slide-in-up"
+            style={{ animationDelay: "0.2s" }}
+          >
             <div className="flex items-center justify-between mb-4">
               <XCircle size={40} weight="fill" className="text-white/80" />
               <ChartBar size={24} className="text-white/60" />
@@ -305,14 +310,21 @@ export default function AdminPage() {
             </p>
             <p className="text-white/70 text-sm mt-1">
               {submissions.length > 0
-                ? `${((submissions.filter((s) => !s.wonPrize).length / submissions.length) * 100).toFixed(1)}%`
+                ? `${(
+                    (submissions.filter((s) => !s.wonPrize).length /
+                      submissions.length) *
+                    100
+                  ).toFixed(1)}%`
                 : "0%"}{" "}
               dos participantes
             </p>
           </div>
 
           {/* Prêmios Restantes */}
-          <div className="bg-gradient-to-br from-yellow-600 to-orange-600 p-6 rounded-lg shadow-lg card-hover animate-slide-in-up" style={{ animationDelay: '0.3s' }}>
+          <div
+            className="bg-gradient-to-br from-yellow-600 to-orange-600 p-6 rounded-lg shadow-lg card-hover animate-slide-in-up"
+            style={{ animationDelay: "0.3s" }}
+          >
             <div className="flex items-center justify-between mb-4">
               <Gift size={40} weight="fill" className="text-white/80" />
               <span className="text-white/60 text-sm font-semibold">
@@ -334,10 +346,11 @@ export default function AdminPage() {
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-green-400">
             <CheckCircle size={28} weight="fill" /> Validar Código de Resgate
           </h2>
-          
+
           <div className="bg-black/30 p-4 rounded-lg mb-4">
             <p className="text-gray-300 text-sm mb-2">
-              🎫 Digite o código de 4 caracteres informado pelo ganhador para validar e registrar a entrega do prêmio.
+              🎫 Digite o código de 4 caracteres informado pelo ganhador para
+              validar e registrar a entrega do prêmio.
             </p>
           </div>
 
@@ -346,7 +359,9 @@ export default function AdminPage() {
               <input
                 type="text"
                 value={redeemCodeInput}
-                onChange={(e) => setRedeemCodeInput(e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  setRedeemCodeInput(e.target.value.toUpperCase())
+                }
                 onKeyPress={(e) => e.key === "Enter" && handleValidateCode()}
                 placeholder="Ex: A3B7"
                 maxLength={4}
@@ -354,7 +369,7 @@ export default function AdminPage() {
                 disabled={isValidating}
               />
             </div>
-            
+
             <button
               onClick={handleValidateCode}
               disabled={isValidating || !redeemCodeInput}
@@ -383,7 +398,9 @@ export default function AdminPage() {
                   : "bg-red-500/20 border-red-500 text-red-300"
               }`}
             >
-              <p className="font-semibold whitespace-pre-line">{validationMessage}</p>
+              <p className="font-semibold whitespace-pre-line">
+                {validationMessage}
+              </p>
             </div>
           )}
 
@@ -438,7 +455,7 @@ export default function AdminPage() {
                 </button>
               </div>
             </div>
-            
+
             {/* Botão de Limpeza */}
             <button
               onClick={() => setShowClearModal(true)}
@@ -456,7 +473,7 @@ export default function AdminPage() {
             <h2 className="text-2xl font-bold flex items-center gap-2">
               <Users size={28} /> Participantes do Sorteio
             </h2>
-            
+
             {/* Botões para ocultar/mostrar dados sensíveis */}
             <div className="flex items-center gap-3">
               <button
@@ -512,14 +529,24 @@ export default function AdminPage() {
                 <p className="text-gray-400 text-sm">Última Participação</p>
                 <p className="text-white font-semibold text-sm mt-1">
                   {new Date(
-                    Math.max(...submissions.map((s) => new Date(s.timestamp).getTime()))
-                  ).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                    Math.max(
+                      ...submissions.map((s) => new Date(s.timestamp).getTime())
+                    )
+                  ).toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-gray-400 text-sm">Taxa de Vitória</p>
                 <p className="text-white font-semibold text-sm mt-1">
-                  {((submissions.filter((s) => s.wonPrize).length / submissions.length) * 100).toFixed(1)}%
+                  {(
+                    (submissions.filter((s) => s.wonPrize).length /
+                      submissions.length) *
+                    100
+                  ).toFixed(1)}
+                  %
                 </p>
               </div>
               <div className="text-center">
@@ -531,7 +558,13 @@ export default function AdminPage() {
               <div className="text-center">
                 <p className="text-gray-400 text-sm">Com Telefone</p>
                 <p className="text-white font-semibold text-sm mt-1">
-                  {submissions.filter((s) => s.phone).length} ({((submissions.filter((s) => s.phone).length / submissions.length) * 100).toFixed(0)}%)
+                  {submissions.filter((s) => s.phone).length} (
+                  {(
+                    (submissions.filter((s) => s.phone).length /
+                      submissions.length) *
+                    100
+                  ).toFixed(0)}
+                  %)
                 </p>
               </div>
             </div>
@@ -565,10 +598,11 @@ export default function AdminPage() {
                         {hideEmails ? maskEmail(sub.email) : sub.email}
                       </td>
                       <td className="p-2">
-                        {sub.phone 
-                          ? (hidePhones ? maskPhone(sub.phone) : sub.phone)
-                          : "N/A"
-                        }
+                        {sub.phone
+                          ? hidePhones
+                            ? maskPhone(sub.phone)
+                            : sub.phone
+                          : "N/A"}
                       </td>
                       <td className="p-2 font-mono text-xs">
                         {sub.systemInfo
@@ -604,12 +638,24 @@ export default function AdminPage() {
                             <button
                               onClick={() => toggleCodeVisibility(sub.id)}
                               className="p-1 hover:bg-gray-600 rounded transition-colors"
-                              title={visibleCodes.has(sub.id) ? "Ocultar código" : "Mostrar código"}
+                              title={
+                                visibleCodes.has(sub.id)
+                                  ? "Ocultar código"
+                                  : "Mostrar código"
+                              }
                             >
                               {visibleCodes.has(sub.id) ? (
-                                <EyeSlash size={18} className="text-gray-400" weight="bold" />
+                                <EyeSlash
+                                  size={18}
+                                  className="text-gray-400"
+                                  weight="bold"
+                                />
                               ) : (
-                                <Eye size={18} className="text-gray-400" weight="bold" />
+                                <Eye
+                                  size={18}
+                                  className="text-gray-400"
+                                  weight="bold"
+                                />
                               )}
                             </button>
                           </div>
@@ -627,12 +673,15 @@ export default function AdminPage() {
                               </span>
                               {sub.redeemedAt && (
                                 <span className="text-xs text-gray-400">
-                                  {new Date(sub.redeemedAt).toLocaleString("pt-BR", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
+                                  {new Date(sub.redeemedAt).toLocaleString(
+                                    "pt-BR",
+                                    {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  )}
                                 </span>
                               )}
                             </div>
@@ -663,19 +712,29 @@ export default function AdminPage() {
                 </h3>
                 <div className="space-y-2">
                   {(() => {
-                    const devices = submissions.reduce((acc: Record<string, number>, sub) => {
-                      const device = sub.systemInfo?.device || "desktop";
-                      acc[device] = (acc[device] || 0) + 1;
-                      return acc;
-                    }, {});
+                    const devices = submissions.reduce(
+                      (acc: Record<string, number>, sub) => {
+                        const device = sub.systemInfo?.device || "desktop";
+                        acc[device] = (acc[device] || 0) + 1;
+                        return acc;
+                      },
+                      {}
+                    );
                     return Object.entries(devices).map(([device, count]) => (
-                      <div key={device} className="flex justify-between items-center">
-                        <span className="text-gray-300 capitalize">{device}</span>
+                      <div
+                        key={device}
+                        className="flex justify-between items-center"
+                      >
+                        <span className="text-gray-300 capitalize">
+                          {device}
+                        </span>
                         <div className="flex items-center gap-2">
                           <div className="w-24 bg-gray-600 rounded-full h-2">
                             <div
                               className="bg-blue-500 h-2 rounded-full"
-                              style={{ width: `${(count / submissions.length) * 100}%` }}
+                              style={{
+                                width: `${(count / submissions.length) * 100}%`,
+                              }}
                             ></div>
                           </div>
                           <span className="text-white font-semibold text-sm w-8">
@@ -695,22 +754,34 @@ export default function AdminPage() {
                 </h3>
                 <div className="space-y-2">
                   {(() => {
-                    const browsers = submissions.reduce((acc: Record<string, number>, sub) => {
-                      const browser = sub.systemInfo?.browser?.split(" ")[0] || "Desconhecido";
-                      acc[browser] = (acc[browser] || 0) + 1;
-                      return acc;
-                    }, {});
+                    const browsers = submissions.reduce(
+                      (acc: Record<string, number>, sub) => {
+                        const browser =
+                          sub.systemInfo?.browser?.split(" ")[0] ||
+                          "Desconhecido";
+                        acc[browser] = (acc[browser] || 0) + 1;
+                        return acc;
+                      },
+                      {}
+                    );
                     return Object.entries(browsers)
                       .sort(([, a], [, b]) => b - a)
                       .slice(0, 5)
                       .map(([browser, count]) => (
-                        <div key={browser} className="flex justify-between items-center">
+                        <div
+                          key={browser}
+                          className="flex justify-between items-center"
+                        >
                           <span className="text-gray-300">{browser}</span>
                           <div className="flex items-center gap-2">
                             <div className="w-24 bg-gray-600 rounded-full h-2">
                               <div
                                 className="bg-green-500 h-2 rounded-full"
-                                style={{ width: `${(count / submissions.length) * 100}%` }}
+                                style={{
+                                  width: `${
+                                    (count / submissions.length) * 100
+                                  }%`,
+                                }}
                               ></div>
                             </div>
                             <span className="text-white font-semibold text-sm w-8">
@@ -730,21 +801,32 @@ export default function AdminPage() {
                 </h3>
                 <div className="space-y-2">
                   {(() => {
-                    const systems = submissions.reduce((acc: Record<string, number>, sub) => {
-                      const os = sub.systemInfo?.os?.split(" ")[0] || "Desconhecido";
-                      acc[os] = (acc[os] || 0) + 1;
-                      return acc;
-                    }, {});
+                    const systems = submissions.reduce(
+                      (acc: Record<string, number>, sub) => {
+                        const os =
+                          sub.systemInfo?.os?.split(" ")[0] || "Desconhecido";
+                        acc[os] = (acc[os] || 0) + 1;
+                        return acc;
+                      },
+                      {}
+                    );
                     return Object.entries(systems)
                       .sort(([, a], [, b]) => b - a)
                       .map(([os, count]) => (
-                        <div key={os} className="flex justify-between items-center">
+                        <div
+                          key={os}
+                          className="flex justify-between items-center"
+                        >
                           <span className="text-gray-300">{os}</span>
                           <div className="flex items-center gap-2">
                             <div className="w-24 bg-gray-600 rounded-full h-2">
                               <div
                                 className="bg-purple-500 h-2 rounded-full"
-                                style={{ width: `${(count / submissions.length) * 100}%` }}
+                                style={{
+                                  width: `${
+                                    (count / submissions.length) * 100
+                                  }%`,
+                                }}
                               ></div>
                             </div>
                             <span className="text-white font-semibold text-sm w-8">
@@ -792,7 +874,11 @@ export default function AdminPage() {
                         fill="transparent"
                         stroke="#10B981"
                         strokeWidth="40"
-                        strokeDasharray={`${(submissions.filter((s) => s.wonPrize).length / submissions.length) * 502.4} 502.4`}
+                        strokeDasharray={`${
+                          (submissions.filter((s) => s.wonPrize).length /
+                            submissions.length) *
+                          502.4
+                        } 502.4`}
                         transform="rotate(-90 100 100)"
                         strokeLinecap="round"
                       />
@@ -805,7 +891,12 @@ export default function AdminPage() {
                         fontSize="32"
                         fontWeight="bold"
                       >
-                        {((submissions.filter((s) => s.wonPrize).length / submissions.length) * 100).toFixed(0)}%
+                        {(
+                          (submissions.filter((s) => s.wonPrize).length /
+                            submissions.length) *
+                          100
+                        ).toFixed(0)}
+                        %
                       </text>
                       <text
                         x="100"
@@ -823,7 +914,8 @@ export default function AdminPage() {
                       <div className="w-4 h-4 bg-green-500 rounded"></div>
                       <div>
                         <p className="text-white font-semibold">
-                          {submissions.filter((s) => s.wonPrize).length} Ganharam
+                          {submissions.filter((s) => s.wonPrize).length}{" "}
+                          Ganharam
                         </p>
                         <p className="text-gray-400 text-sm">
                           Receberam prêmios
@@ -834,7 +926,8 @@ export default function AdminPage() {
                       <div className="w-4 h-4 bg-gray-600 rounded"></div>
                       <div>
                         <p className="text-white font-semibold">
-                          {submissions.filter((s) => !s.wonPrize).length} Não Ganharam
+                          {submissions.filter((s) => !s.wonPrize).length} Não
+                          Ganharam
                         </p>
                         <p className="text-gray-400 text-sm">
                           Tentaram a sorte
@@ -847,19 +940,34 @@ export default function AdminPage() {
 
               {/* Métricas de Engajamento */}
               <div className="bg-gray-700/30 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4">Métricas de Engajamento</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Métricas de Engajamento
+                </h3>
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between mb-2">
-                      <span className="text-gray-300">Preencheram Telefone</span>
+                      <span className="text-gray-300">
+                        Preencheram Telefone
+                      </span>
                       <span className="text-white font-semibold">
-                        {((submissions.filter((s) => s.phone).length / submissions.length) * 100).toFixed(0)}%
+                        {(
+                          (submissions.filter((s) => s.phone).length /
+                            submissions.length) *
+                          100
+                        ).toFixed(0)}
+                        %
                       </span>
                     </div>
                     <div className="w-full bg-gray-600 rounded-full h-3">
                       <div
                         className="bg-blue-500 h-3 rounded-full transition-all duration-500"
-                        style={{ width: `${(submissions.filter((s) => s.phone).length / submissions.length) * 100}%` }}
+                        style={{
+                          width: `${
+                            (submissions.filter((s) => s.phone).length /
+                              submissions.length) *
+                            100
+                          }%`,
+                        }}
                       ></div>
                     </div>
                   </div>
@@ -868,13 +976,24 @@ export default function AdminPage() {
                     <div className="flex justify-between mb-2">
                       <span className="text-gray-300">Taxa de Sucesso</span>
                       <span className="text-white font-semibold">
-                        {((submissions.filter((s) => s.wonPrize).length / submissions.length) * 100).toFixed(1)}%
+                        {(
+                          (submissions.filter((s) => s.wonPrize).length /
+                            submissions.length) *
+                          100
+                        ).toFixed(1)}
+                        %
                       </span>
                     </div>
                     <div className="w-full bg-gray-600 rounded-full h-3">
                       <div
                         className="bg-green-500 h-3 rounded-full transition-all duration-500"
-                        style={{ width: `${(submissions.filter((s) => s.wonPrize).length / submissions.length) * 100}%` }}
+                        style={{
+                          width: `${
+                            (submissions.filter((s) => s.wonPrize).length /
+                              submissions.length) *
+                            100
+                          }%`,
+                        }}
                       ></div>
                     </div>
                     <p className="text-gray-400 text-xs mt-1">
@@ -909,11 +1028,9 @@ export default function AdminPage() {
           <div className="bg-gray-800 border-2 border-red-500 rounded-lg shadow-2xl w-full max-w-md p-6">
             <div className="flex items-center gap-3 mb-4">
               <Warning size={40} weight="fill" className="text-red-500" />
-              <h2 className="text-2xl font-bold text-red-500">
-                ⚠️ ATENÇÃO!
-              </h2>
+              <h2 className="text-2xl font-bold text-red-500">⚠️ ATENÇÃO!</h2>
             </div>
-            
+
             <div className="space-y-4 mb-6">
               <p className="text-white font-semibold">
                 Você está prestes a EXCLUIR TODOS OS DADOS:
@@ -923,7 +1040,7 @@ export default function AdminPage() {
                 <li>Todos os registros de ganhadores</li>
                 <li>Histórico completo de submissões</li>
               </ul>
-              
+
               <div className="bg-red-900/30 border border-red-500/50 rounded p-3">
                 <p className="text-red-300 text-sm font-semibold">
                   ⚠️ Esta ação é IRREVERSÍVEL!
@@ -935,19 +1052,23 @@ export default function AdminPage() {
 
               <div className="bg-yellow-900/30 border border-yellow-500/50 rounded p-3">
                 <p className="text-yellow-300 text-sm">
-                  💡 <strong>Dica:</strong> Use esta função apenas para limpar dados de teste antes da feira começar.
+                  💡 <strong>Dica:</strong> Use esta função apenas para limpar
+                  dados de teste antes da feira começar.
                 </p>
               </div>
             </div>
 
             <div className="mb-6">
               <label className="block text-white font-semibold mb-2">
-                Digite <span className="text-red-500 font-mono">LIMPAR</span> para confirmar:
+                Digite <span className="text-red-500 font-mono">LIMPAR</span>{" "}
+                para confirmar:
               </label>
               <input
                 type="text"
                 value={clearConfirmText}
-                onChange={(e) => setClearConfirmText(e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  setClearConfirmText(e.target.value.toUpperCase())
+                }
                 placeholder="Digite LIMPAR"
                 className="w-full p-3 bg-gray-700 border-2 border-gray-600 rounded-md focus:outline-none focus:border-red-500 text-white font-mono"
                 autoFocus

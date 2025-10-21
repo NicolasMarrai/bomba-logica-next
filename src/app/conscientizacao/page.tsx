@@ -35,7 +35,10 @@ export default function AwarenessPage() {
     <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-200 p-4 page-transition">
       <div className="w-full max-w-4xl bg-white/10 backdrop-blur-lg border border-gray-700/80 p-8 rounded-2xl shadow-2xl animate-slide-in-up">
         <div className="flex items-center gap-4 border-b border-gray-700/80 pb-4 mb-6 animate-fade-in">
-          <ShieldWarning size={48} className="text-yellow-400 animate-bounce-subtle" />
+          <ShieldWarning
+            size={48}
+            className="text-yellow-400 animate-bounce-subtle"
+          />
           <h1 className="text-3xl md:text-4xl font-bold text-yellow-400">
             Você Acabou de Cair em uma Armadilha!
           </h1>

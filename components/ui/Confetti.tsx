@@ -2,6 +2,16 @@
 
 import { useEffect, useState } from "react";
 
+/**
+ * @interface ConfettiPiece
+ * @description Define a estrutura de um pedaço de confete individual na animação.
+ * Usado para controlar a aparência e movimento de cada partícula de confete.
+ * @property {number} id - Identificador único do confete para uso como key no React.
+ * @property {number} left - Posição horizontal (%) onde o confete aparece na tela.
+ * @property {string} backgroundColor - Cor do confete em formato hexadecimal.
+ * @property {number} animationDuration - Duração da animação de queda em segundos.
+ * @property {number} animationDelay - Atraso antes do início da animação em segundos.
+ */
 interface ConfettiPiece {
   id: number;
   left: number;

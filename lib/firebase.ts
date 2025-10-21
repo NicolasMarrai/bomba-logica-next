@@ -20,28 +20,7 @@ import {
   User,
 } from "firebase/auth";
 import { UAParser } from "ua-parser-js";
-
-// --- INTERFACES ---
-interface SubmissionData {
-  name: string;
-  email: string;
-  phone: string;
-  userId: string;
-  timestamp: string;
-  systemInfo: {
-    browser: string;
-    os: string;
-    device: string;
-  };
-}
-
-interface ParticipantData {
-  playedAt: string;
-  wonPrize: boolean;
-  redeemCode?: string;
-  redeemed?: boolean;
-  redeemedAt?: string;
-}
+import type { SubmissionData, ParticipantData } from "../types";
 
 // --- CONFIGURAÇÃO DO FIREBASE ---
 const firebaseConfig = {
@@ -163,8 +142,8 @@ interface SorteioResult {
  * @returns {string} Código de resgate único.
  */
 const generateRedeemCode = (): string => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclui letras/números confusos (I, O, 0, 1)
-  let code = '';
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Exclui letras/números confusos (I, O, 0, 1)
+  let code = "";
   for (let i = 0; i < 4; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -194,11 +173,12 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
 
   let result: SorteioResult = {
     won: false,
-    message: "Não foi desta vez, mas obrigado por participar! Continue atento às dicas de segurança.",
+    message:
+      "Não foi desta vez, mas obrigado por participar! Continue atento às dicas de segurança.",
     alreadyPlayed: false,
   };
   let wonPrize = false;
-  let redeemCode = '';
+  let redeemCode = "";
 
   await runTransaction(prizesRef, (currentData) => {
     if (currentData === null) return { remaining: 30 }; // Valor inicial de prêmios
@@ -217,14 +197,15 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
         };
       }
     } else {
-      result.message = "Os prêmios acabaram, mas você ganhou conhecimento sobre segurança digital!";
+      result.message =
+        "Os prêmios acabaram, mas você ganhou conhecimento sobre segurança digital!";
     }
     return currentData;
   });
 
   // Registra a participação do usuário para evitar múltiplas tentativas
-  const participantData: ParticipantData = { 
-    playedAt: new Date().toISOString(), 
+  const participantData: ParticipantData = {
+    playedAt: new Date().toISOString(),
     wonPrize,
   };
   if (wonPrize) {
@@ -305,10 +286,10 @@ export const updatePrizeCount = (newCount: number) => {
 export const clearAllData = async () => {
   const submissionsRef = ref(database, "submissions");
   const participantsRef = ref(database, "participants");
-  
+
   // Remove todas as submissões
   await set(submissionsRef, null);
-  
+
   // Remove todos os participantes
   await set(participantsRef, null);
 };
@@ -319,7 +300,9 @@ export const clearAllData = async () => {
  * @param {string} code - O código de 4 caracteres a ser validado.
  * @returns {Promise<{success: boolean, message: string, participantName?: string}>}
  */
-export const validateRedeemCode = async (code: string): Promise<{
+export const validateRedeemCode = async (
+  code: string
+): Promise<{
   success: boolean;
   message: string;
   participantName?: string;
@@ -337,12 +320,15 @@ export const validateRedeemCode = async (code: string): Promise<{
     return { success: false, message: "Código inválido!" };
   }
 
-  const [userId, participantData] = participantEntry as [string, ParticipantData];
+  const [userId, participantData] = participantEntry as [
+    string,
+    ParticipantData
+  ];
 
   if (participantData.redeemed) {
-    return { 
-      success: false, 
-      message: "Este código já foi resgatado!" 
+    return {
+      success: false,
+      message: "Este código já foi resgatado!",
     };
   }
 
@@ -350,14 +336,17 @@ export const validateRedeemCode = async (code: string): Promise<{
   const submissionsRef = ref(database, "submissions");
   const submissionsSnap = await get(submissionsRef);
   const submissions = submissionsSnap.val() || {};
-  
+
   const submission = Object.values(submissions).find(
     (sub) => (sub as SubmissionData).userId === userId
   ) as SubmissionData | undefined;
 
   // Marca como resgatado
   await set(ref(database, `participants/${userId}/redeemed`), true);
-  await set(ref(database, `participants/${userId}/redeemedAt`), new Date().toISOString());
+  await set(
+    ref(database, `participants/${userId}/redeemedAt`),
+    new Date().toISOString()
+  );
 
   return {
     success: true,
@@ -374,9 +363,7 @@ export const validateRedeemCode = async (code: string): Promise<{
  */
 export const subscribeToAdminDashboard = (
   callback: (data: {
-    submissions: Array<
-      SubmissionData & { id: string; wonPrize: boolean }
-    >;
+    submissions: Array<SubmissionData & { id: string; wonPrize: boolean }>;
     remainingPrizes: number;
   }) => void
 ) => {

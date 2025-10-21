@@ -20,10 +20,10 @@ export const metadata: Metadata = {
     "Projeto educacional sobre segurança digital e conscientização contra golpes de sorteios falsos.",
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: 'any' },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
     ],
-    apple: '/apple-touch-icon.svg',
+    apple: "/apple-touch-icon.svg",
   },
   openGraph: {
     title: "Sorteio Relâmpago - ENTEC 2025",
