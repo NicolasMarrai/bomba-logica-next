@@ -128,12 +128,14 @@ export const saveSubmission = async (
  * @property {string} message - A mensagem a ser exibida para o usuário.
  * @property {boolean} alreadyPlayed - Indica se o usuário já participou do sorteio.
  * @property {string} [redeemCode] - Código de resgate de 4 caracteres para ganhadores.
+ * @property {boolean} [redeemed] - Indica se o prêmio já foi resgatado.
  */
 interface SorteioResult {
   won: boolean;
   message: string;
   alreadyPlayed: boolean;
   redeemCode?: string;
+  redeemed?: boolean;
 }
 
 /**
@@ -164,6 +166,31 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
 
   const snapshot = await get(participantRef);
   if (snapshot.exists()) {
+    const participantData = snapshot.val() as ParticipantData;
+    
+    // Se já participou e ganhou
+    if (participantData.wonPrize && participantData.redeemCode) {
+      // Se já resgatou o prêmio
+      if (participantData.redeemed) {
+        return {
+          won: true,
+          message: "Você já resgatou seu prêmio anteriormente!",
+          alreadyPlayed: true,
+          redeemed: true,
+          redeemCode: participantData.redeemCode,
+        };
+      }
+      // Se ganhou mas ainda não resgatou
+      return {
+        won: true,
+        message: "Você já participou e GANHOU! Aqui está seu código novamente.",
+        alreadyPlayed: true,
+        redeemed: false,
+        redeemCode: participantData.redeemCode,
+      };
+    }
+    
+    // Se já participou mas não ganhou
     return {
       won: false,
       message: "Você já participou do sorteio anteriormente!",
