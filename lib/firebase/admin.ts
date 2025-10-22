@@ -1,6 +1,10 @@
 import { ref, get, set, onValue, off } from "firebase/database";
 import { database } from "./config";
-import type { SubmissionData, ParticipantData, AdminDashboardData } from "../../types";
+import type {
+  SubmissionData,
+  ParticipantData,
+  AdminDashboardData,
+} from "../../types";
 
 /**
  * @function getAdminDashboardData
@@ -77,11 +81,11 @@ export const clearAllData = async () => {
  * @function validateRedeemCode
  * @description Valida um código de resgate de 4 caracteres e marca o prêmio como resgatado se válido.
  * Verifica se o código existe, se já foi resgatado e busca o nome do participante.
- * 
+ *
  * @param {string} code - Código de 4 caracteres a ser validado (será convertido para uppercase).
- * @returns {Promise<{success: boolean, message: string, participantName?: string}>} 
+ * @returns {Promise<{success: boolean, message: string, participantName?: string}>}
  *          Objeto com resultado da validação, mensagem e nome do participante (se encontrado).
- * 
+ *
  * @example
  * const result = await validateRedeemCode("A3B7");
  * if (result.success) {
@@ -147,11 +151,11 @@ export const validateRedeemCode = async (
  * @function subscribeToAdminDashboard
  * @description Inscreve-se para receber atualizações em tempo real dos dados do dashboard administrativo.
  * Monitora mudanças em submissões, participantes e prêmios no Firebase Realtime Database.
- * 
+ *
  * @param {function} callback - Função callback que será executada sempre que houver atualizações nos dados.
  *                              Recebe um objeto com submissions e remainingPrizes.
  * @returns {function} Função unsubscribe para cancelar todas as inscrições e limpar listeners.
- * 
+ *
  * @example
  * const unsubscribe = subscribeToAdminDashboard((data) => {
  *   console.log('Dados atualizados:', data);

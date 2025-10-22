@@ -64,7 +64,7 @@ interface UseAdminDashboardReturn {
  * @hook useAdminDashboard
  * @description Hook personalizado para gerenciar toda a lógica do painel administrativo.
  * Encapsula estados de autenticação, dados, prêmios, validação de códigos e funções utilitárias.
- * 
+ *
  * Funcionalidades:
  * - Autenticação com senha
  * - Gerenciamento de submissões e prêmios em tempo real
@@ -72,9 +72,9 @@ interface UseAdminDashboardReturn {
  * - Limpeza de dados de teste
  * - Mascaramento de dados sensíveis (emails e telefones)
  * - Controle de visibilidade de códigos
- * 
+ *
  * @returns {UseAdminDashboardReturn} Objeto contendo todos os estados e funções do dashboard
- * 
+ *
  * @example
  * const {
  *   isAuthenticated,

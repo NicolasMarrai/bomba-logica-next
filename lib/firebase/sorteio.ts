@@ -7,7 +7,7 @@ import { generateRedeemCode } from "../utils";
 /**
  * @function handleSorteio
  * @description Processa a participação de um usuário no sorteio de prêmios.
- * 
+ *
  * Fluxo de funcionamento:
  * 1. Verifica se o usuário já participou anteriormente
  * 2. Se sim, retorna o status anterior (ganhou, já resgatou, etc)
@@ -15,16 +15,16 @@ import { generateRedeemCode } from "../utils";
  * 4. Decrementa o estoque de prêmios se ganhar
  * 5. Gera código de resgate único de 4 caracteres
  * 6. Registra a participação no Firebase
- * 
+ *
  * @returns {Promise<SorteioResult>} Resultado do sorteio contendo:
  *          - won: se ganhou ou não
  *          - message: mensagem para exibir ao usuário
  *          - alreadyPlayed: se já havia participado
  *          - redeemCode: código para resgatar (apenas se ganhou)
  *          - redeemed: se já resgatou o prêmio (apenas se aplicável)
- * 
+ *
  * @throws {Error} Se a autenticação anônima falhar
- * 
+ *
  * @example
  * const result = await handleSorteio();
  * if (result.won) {
@@ -42,7 +42,7 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
   const snapshot = await get(participantRef);
   if (snapshot.exists()) {
     const participantData = snapshot.val() as ParticipantData;
-    
+
     // Caso 1: Usuário já ganhou anteriormente
     if (participantData.wonPrize && participantData.redeemCode) {
       // Caso 1a: Prêmio já foi resgatado
@@ -64,7 +64,7 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
         redeemCode: participantData.redeemCode,
       };
     }
-    
+
     // Caso 2: Usuário já participou mas não ganhou
     return {
       won: false,
