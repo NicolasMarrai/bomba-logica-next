@@ -95,3 +95,20 @@ export interface FormData {
   email: string;
   phone: string;
 }
+
+/**
+ * @interface SorteioResult
+ * @description Define a estrutura do objeto de resultado do sorteio.
+ * @property {boolean} won - Indica se o usuário ganhou o prêmio.
+ * @property {string} message - A mensagem a ser exibida para o usuário.
+ * @property {boolean} alreadyPlayed - Indica se o usuário já participou do sorteio.
+ * @property {string} [redeemCode] - Código de resgate de 4 caracteres para ganhadores.
+ * @property {boolean} [redeemed] - Indica se o prêmio já foi resgatado.
+ */
+export interface SorteioResult {
+  won: boolean;
+  message: string;
+  alreadyPlayed: boolean;
+  redeemCode?: string;
+  redeemed?: boolean;
+}

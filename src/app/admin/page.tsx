@@ -1,12 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  updatePrizeCount,
-  subscribeToAdminDashboard,
-  clearAllData,
-  validateRedeemCode,
-} from "../../../lib/firebase";
 import {
   Lock,
   FloppyDisk,
@@ -22,7 +15,7 @@ import {
   EyeSlash,
   Spinner,
 } from "@phosphor-icons/react/dist/ssr";
-import type { Submission } from "../../../types/index";
+import { useAdminDashboard } from "../../../hooks/useAdminDashboard";
 
 /**
  * @component AdminPage
@@ -30,184 +23,39 @@ import type { Submission } from "../../../types/index";
  * @returns {JSX.Element}
  */
 export default function AdminPage() {
-  // --- ESTADOS DE AUTENTICAÇÃO E DADOS ---
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [remainingPrizes, setRemainingPrizes] = useState(0);
-  const [newPrizeCount, setNewPrizeCount] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [showClearModal, setShowClearModal] = useState(false);
-  const [clearConfirmText, setClearConfirmText] = useState("");
-  const [hideEmails, setHideEmails] = useState(true);
-  const [hidePhones, setHidePhones] = useState(true);
-
-  // Estados para validação de código
-  const [redeemCodeInput, setRedeemCodeInput] = useState("");
-  const [validationMessage, setValidationMessage] = useState("");
-  const [validationSuccess, setValidationSuccess] = useState(false);
-  const [isValidating, setIsValidating] = useState(false);
-
-  // Estado para controlar visibilidade individual de códigos
-  const [visibleCodes, setVisibleCodes] = useState<Set<string>>(new Set());
-
-  // A senha é carregada a partir de variáveis de ambiente para segurança.
-  const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
-
-  /**
-   * @function maskEmail
-   * @description Mascara o email para apresentações, mostrando apenas o primeiro caractere e o domínio.
-   */
-  const maskEmail = (email: string) => {
-    if (!email) return "N/A";
-    const [local, domain] = email.split("@");
-    if (!domain) return "***@***";
-    return `${local[0]}***@${domain}`;
-  };
-
-  /**
-   * @function maskPhone
-   * @description Mascara o telefone para apresentações, mostrando apenas os últimos 4 dígitos.
-   */
-  const maskPhone = (phone: string) => {
-    if (!phone) return "N/A";
-    const digits = phone.replace(/\D/g, "");
-    if (digits.length < 4) return "***";
-    return `(***) ***-${digits.slice(-4)}`;
-  };
-
-  /**
-   * @function toggleCodeVisibility
-   * @description Alterna a visibilidade de um código específico.
-   */
-  const toggleCodeVisibility = (submissionId: string) => {
-    setVisibleCodes((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(submissionId)) {
-        newSet.delete(submissionId);
-      } else {
-        newSet.add(submissionId);
-      }
-      return newSet;
-    });
-  };
-
-  // Efeito que se inscreve para atualizações em tempo real assim que o usuário é autenticado.
-  useEffect(() => {
-    if (isAuthenticated) {
-      setIsLoading(true);
-
-      // Inscreve-se para atualizações em tempo real
-      const unsubscribe = subscribeToAdminDashboard((data) => {
-        setSubmissions(data.submissions);
-        setRemainingPrizes(data.remainingPrizes);
-        setNewPrizeCount(String(data.remainingPrizes));
-        setIsLoading(false);
-      });
-
-      // Limpa a inscrição quando o componente for desmontado ou o usuário deslogar
-      return () => {
-        unsubscribe();
-      };
-    }
-  }, [isAuthenticated]);
-
-  /**
-   * @function handleLogin
-   * @description Valida a senha inserida pelo usuário e libera o acesso ao painel.
-   */
-  const handleLogin = () => {
-    if (password === correctPassword) {
-      setIsAuthenticated(true);
-      setError("");
-    } else {
-      setError("Senha incorreta.");
-    }
-  };
-
-  /**
-   * @function handlePrizeUpdate
-   * @description Envia a nova contagem de prêmios para o Firebase e atualiza o estado local
-   * para refletir a mudança na interface.
-   */
-  const handlePrizeUpdate = async () => {
-    const count = parseInt(newPrizeCount, 10);
-    if (!isNaN(count) && count >= 0) {
-      try {
-        await updatePrizeCount(count);
-        setRemainingPrizes(count);
-        alert("Estoque de prêmios atualizado com sucesso!");
-      } catch (e) {
-        console.error("Falha ao atualizar o estoque:", e);
-        alert("Falha ao atualizar o estoque.");
-      }
-    } else {
-      alert("Por favor, insira um número válido.");
-    }
-  };
-
-  /**
-   * @function handleClearData
-   * @description Limpa todos os dados de teste do Firebase após confirmação.
-   */
-  const handleClearData = async () => {
-    if (clearConfirmText !== "LIMPAR") {
-      alert("Digite 'LIMPAR' para confirmar a exclusão.");
-      return;
-    }
-
-    try {
-      await clearAllData();
-      setShowClearModal(false);
-      setClearConfirmText("");
-      alert("Todos os dados foram removidos com sucesso!");
-    } catch (e) {
-      console.error("Erro ao limpar dados:", e);
-      alert("Erro ao limpar os dados. Verifique o console.");
-    }
-  };
-
-  /**
-   * @function handleValidateCode
-   * @description Valida um código de resgate informado pelo usuário.
-   */
-  const handleValidateCode = async () => {
-    if (!redeemCodeInput || redeemCodeInput.length !== 4) {
-      setValidationMessage("Por favor, insira um código de 4 caracteres.");
-      setValidationSuccess(false);
-      return;
-    }
-
-    setIsValidating(true);
-    setValidationMessage("");
-
-    try {
-      const result = await validateRedeemCode(redeemCodeInput);
-      setValidationSuccess(result.success);
-
-      if (result.success) {
-        setValidationMessage(
-          `✅ ${result.message}\nParticipante: ${result.participantName}`
-        );
-        setRedeemCodeInput("");
-      } else {
-        setValidationMessage(`❌ ${result.message}`);
-      }
-    } catch (e) {
-      console.error("Erro ao validar código:", e);
-      setValidationMessage("❌ Erro ao validar código. Tente novamente.");
-      setValidationSuccess(false);
-    } finally {
-      setIsValidating(false);
-
-      // Limpa a mensagem após 5 segundos
-      setTimeout(() => {
-        setValidationMessage("");
-      }, 5000);
-    }
-  };
+  // Usando o hook personalizado para gerenciar toda a lógica do admin
+  const {
+    isAuthenticated,
+    password,
+    error,
+    setPassword,
+    handleLogin,
+    submissions,
+    remainingPrizes,
+    isLoading,
+    newPrizeCount,
+    setNewPrizeCount,
+    handlePrizeUpdate,
+    showClearModal,
+    setShowClearModal,
+    clearConfirmText,
+    setClearConfirmText,
+    handleClearData,
+    hideEmails,
+    setHideEmails,
+    hidePhones,
+    setHidePhones,
+    redeemCodeInput,
+    setRedeemCodeInput,
+    validationMessage,
+    validationSuccess,
+    isValidating,
+    handleValidateCode,
+    visibleCodes,
+    toggleCodeVisibility,
+    maskEmail,
+    maskPhone,
+  } = useAdminDashboard();
 
   // --- TELA DE LOGIN ---
   if (!isAuthenticated) {
