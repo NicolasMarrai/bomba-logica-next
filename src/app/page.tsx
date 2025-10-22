@@ -86,7 +86,37 @@ export default function SorteioPage() {
    */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Aplica máscara de telefone brasileiro
+    if (name === "phone") {
+      const formattedPhone = formatPhoneNumber(value);
+      setFormData((prev) => ({ ...prev, [name]: formattedPhone }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  /**
+   * @function formatPhoneNumber
+   * @description Formata o número de telefone no padrão brasileiro (xx) xxxxx-xxxx.
+   * @param {string} value - O valor do input.
+   * @returns {string} O número formatado.
+   */
+  const formatPhoneNumber = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, "");
+    
+    // Limita a 11 dígitos (DDD + 9 dígitos)
+    const truncated = numbers.slice(0, 11);
+    
+    // Aplica a formatação
+    if (truncated.length <= 2) {
+      return truncated;
+    } else if (truncated.length <= 7) {
+      return `(${truncated.slice(0, 2)}) ${truncated.slice(2)}`;
+    } else {
+      return `(${truncated.slice(0, 2)}) ${truncated.slice(2, 7)}-${truncated.slice(7)}`;
+    }
   };
 
   /**
