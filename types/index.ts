@@ -112,3 +112,15 @@ export interface SorteioResult {
   redeemCode?: string;
   redeemed?: boolean;
 }
+
+/**
+ * @interface AdminDashboardData
+ * @description Define a estrutura completa dos dados para o painel de administração.
+ * Utilizada para tipar o retorno das funções que buscam dados do dashboard.
+ * @property {Submission[]} submissions - Array com todas as submissões de participantes, incluindo status de prêmios.
+ * @property {number} remainingPrizes - Quantidade de prêmios ainda disponíveis no estoque.
+ */
+export interface AdminDashboardData {
+  submissions: Submission[];
+  remainingPrizes: number;
+}

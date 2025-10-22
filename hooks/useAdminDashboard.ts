@@ -7,6 +7,11 @@ import {
 } from "../lib/firebase";
 import type { Submission } from "../types/index";
 
+/**
+ * @interface UseAdminDashboardReturn
+ * @description Define a estrutura de retorno do hook useAdminDashboard.
+ * Contém todos os estados, funções e utilitários necessários para o painel administrativo.
+ */
 interface UseAdminDashboardReturn {
   // Estados de autenticação
   isAuthenticated: boolean;
@@ -55,6 +60,30 @@ interface UseAdminDashboardReturn {
   maskPhone: (phone: string) => string;
 }
 
+/**
+ * @hook useAdminDashboard
+ * @description Hook personalizado para gerenciar toda a lógica do painel administrativo.
+ * Encapsula estados de autenticação, dados, prêmios, validação de códigos e funções utilitárias.
+ * 
+ * Funcionalidades:
+ * - Autenticação com senha
+ * - Gerenciamento de submissões e prêmios em tempo real
+ * - Validação de códigos de resgate
+ * - Limpeza de dados de teste
+ * - Mascaramento de dados sensíveis (emails e telefones)
+ * - Controle de visibilidade de códigos
+ * 
+ * @returns {UseAdminDashboardReturn} Objeto contendo todos os estados e funções do dashboard
+ * 
+ * @example
+ * const {
+ *   isAuthenticated,
+ *   handleLogin,
+ *   submissions,
+ *   remainingPrizes,
+ *   handleValidateCode
+ * } = useAdminDashboard();
+ */
 export function useAdminDashboard(): UseAdminDashboardReturn {
   // --- ESTADOS DE AUTENTICAÇÃO ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -86,12 +115,14 @@ export function useAdminDashboard(): UseAdminDashboardReturn {
   // --- ESTADOS DE VISIBILIDADE DE CÓDIGOS ---
   const [visibleCodes, setVisibleCodes] = useState<Set<string>>(new Set());
 
-  // A senha é carregada a partir de variáveis de ambiente para segurança
+  // Senha carregada a partir de variáveis de ambiente para segurança
   const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
   /**
    * @function maskEmail
    * @description Mascara o email para apresentações, mostrando apenas o primeiro caractere e o domínio.
+   * @param {string} email - Email a ser mascarado
+   * @returns {string} Email mascarado no formato "x***@domain.com"
    */
   const maskEmail = useCallback((email: string) => {
     if (!email) return "N/A";
@@ -103,6 +134,8 @@ export function useAdminDashboard(): UseAdminDashboardReturn {
   /**
    * @function maskPhone
    * @description Mascara o telefone para apresentações, mostrando apenas os últimos 4 dígitos.
+   * @param {string} phone - Telefone a ser mascarado
+   * @returns {string} Telefone mascarado no formato "(***) ***-1234"
    */
   const maskPhone = useCallback((phone: string) => {
     if (!phone) return "N/A";
@@ -113,7 +146,8 @@ export function useAdminDashboard(): UseAdminDashboardReturn {
 
   /**
    * @function toggleCodeVisibility
-   * @description Alterna a visibilidade de um código específico.
+   * @description Alterna a visibilidade de um código específico de resgate.
+   * @param {string} submissionId - ID da submissão cujo código será mostrado/ocultado
    */
   const toggleCodeVisibility = useCallback((submissionId: string) => {
     setVisibleCodes((prev) => {
@@ -183,7 +217,9 @@ export function useAdminDashboard(): UseAdminDashboardReturn {
 
   /**
    * @function handleValidateCode
-   * @description Valida um código de resgate informado pelo usuário.
+   * @description Valida um código de resgate de 4 caracteres informado pelo usuário.
+   * Verifica se o código existe, se ainda não foi resgatado e marca como resgatado.
+   * Exibe mensagem de sucesso ou erro com timeout de 5 segundos.
    */
   const handleValidateCode = useCallback(async () => {
     if (!redeemCodeInput || redeemCodeInput.length !== 4) {
@@ -221,7 +257,11 @@ export function useAdminDashboard(): UseAdminDashboardReturn {
     }
   }, [redeemCodeInput]);
 
-  // Efeito que se inscreve para atualizações em tempo real assim que o usuário é autenticado
+  /**
+   * @effect Real-time Dashboard Subscription
+   * @description Inscreve-se para atualizações em tempo real do Firebase assim que o usuário é autenticado.
+   * Atualiza automaticamente submissions, prêmios restantes e limpa a inscrição ao desmontar.
+   */
   useEffect(() => {
     if (isAuthenticated) {
       setIsLoading(true);
