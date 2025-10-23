@@ -118,7 +118,7 @@ export default function SorteioModal({ onClose }: SorteioModalProps) {
               <div className={`${result.redeemed ? 'bg-gray-500/20 border-gray-500/50' : 'bg-green-500/20 border-green-500/50'} border rounded-lg p-4 space-y-3`}>
                 {!result.redeemed && (
                   <p className="text-green-300 text-sm">
-                    🍫 Informe este código para a equipe e resgate seu Sonho de Valsa!
+                    🍫 Informe este código para a equipe e resgate seu Ouro Branco!
                   </p>
                 )}
                 

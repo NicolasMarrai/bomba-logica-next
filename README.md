@@ -6,7 +6,7 @@ Este é um projeto interativo desenvolvido para a **ENTEC 2025** da **UNIUBE - C
 
 O objetivo principal é educar e conscientizar os usuários sobre os perigos da **Engenharia Social** através de **sorteios falsos** e **captura de dados pessoais**. A aplicação simula um site de sorteio aparentemente legítimo que, ao capturar os dados do usuário, revela os perigos dessa prática e ensina como identificar e evitar golpes similares.
 
-Após a conscientização, os usuários têm a oportunidade de participar de um sorteio **verdadeiro** de bombons Sonho de Valsa, demonstrando a diferença entre práticas éticas e golpes.
+Após a conscientização, os usuários têm a oportunidade de participar de um sorteio **verdadeiro** de bombons Ouro Branco, demonstrando a diferença entre práticas éticas e golpes.
 
 ## Tecnologias Utilizadas
 

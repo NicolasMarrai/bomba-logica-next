@@ -158,7 +158,7 @@ export default function SorteioPage() {
                   </h1>
                 </div>
                 <p className="text-white text-lg font-semibold">
-                  Ganhe um delicioso Sonho de Valsa! 🍫
+                  Ganhe um delicioso Ouro Branco! 🍫
                 </p>
                 <div className="mt-4 flex items-center justify-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg p-3 max-w-xs mx-auto animate-pulse-glow">
                   <Clock size={24} className="text-white" weight="bold" />
@@ -178,7 +178,7 @@ export default function SorteioPage() {
                     🎉 Apenas preencha o formulário para participar!
                   </p>
                   <p className="text-yellow-700 text-sm mt-1">
-                    São apenas 30 bombons disponíveis. Corre!
+                    São apenas 30 Ouro Branco disponíveis. Corre!
                   </p>
                 </div>
 

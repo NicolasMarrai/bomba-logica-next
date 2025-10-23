@@ -95,7 +95,7 @@ export const handleSorteio = async (): Promise<SorteioResult> => {
         result = {
           won: true,
           message:
-            "VOCÊ GANHOU um delicioso Sonho de Valsa! 🍫 Use o código abaixo para resgatar seu prêmio.",
+            "VOCÊ GANHOU um delicioso Ouro Branco! 🍫 Use o código abaixo para resgatar seu prêmio.",
           alreadyPlayed: false,
           redeemCode,
         };
