@@ -238,11 +238,13 @@ export default function SorteioPage() {
 
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || countdown <= 0}
                     className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-lg p-4 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
                   >
                     {isSubmitting
                       ? "Processando..."
+                      : countdown <= 0
+                      ? "⏰ PROMOÇÃO ENCERRADA"
                       : "🎁 QUERO PARTICIPAR DO SORTEIO!"}
                   </button>
 
