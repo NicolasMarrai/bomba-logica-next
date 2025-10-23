@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+import FirebaseAuthInit from "../../components/FirebaseAuthInit";
 
 /**
  * @description Configuração da fonte IBM Plex Mono para ser usada em toda a aplicação,
@@ -35,6 +36,7 @@ export const metadata: Metadata = {
 /**
  * @component RootLayout
  * @description Componente de layout raiz que envolve todas as páginas da aplicação.
+ * Inicializa a autenticação anônima do Firebase assim que o usuário acessa o site.
  * @param {Readonly<{ children: React.ReactNode }>} { children } - O conteúdo da página aninhada.
  * @returns {JSX.Element}
  */
@@ -45,7 +47,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <body className={`${ibmPlexMono.className} bg-black`}>{children}</body>
+      <body className={`${ibmPlexMono.className} bg-black`}>
+        <FirebaseAuthInit />
+        {children}
+      </body>
     </html>
   );
 }
