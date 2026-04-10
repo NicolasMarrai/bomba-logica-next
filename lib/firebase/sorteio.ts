@@ -1,5 +1,5 @@
 import { ref, get, set, runTransaction } from "firebase/database";
-import { database } from "./config";
+import { getFirebaseDatabase } from "./config";
 import { getAnonymousUser } from "./auth";
 import type { ParticipantData, SorteioResult } from "../../types";
 import { generateRedeemCode } from "../utils";
@@ -34,6 +34,7 @@ import { generateRedeemCode } from "../utils";
 export const handleSorteio = async (): Promise<SorteioResult> => {
   const user = await getAnonymousUser();
   if (!user) throw new Error("Autenticação anônima falhou.");
+  const database = getFirebaseDatabase();
 
   const participantRef = ref(database, `participants/${user.uid}`);
   const prizesRef = ref(database, "prizes");

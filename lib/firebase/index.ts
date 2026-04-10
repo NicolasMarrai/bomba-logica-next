@@ -2,7 +2,11 @@
 // Este arquivo serve como ponto único de exportação para todas as funcionalidades do Firebase
 
 // Configuração
-export { database, auth } from "./config";
+export {
+  getFirebaseDatabase,
+  getFirebaseAuth,
+  hasFirebaseClientConfig,
+} from "./config";
 
 // Autenticação
 export { getAnonymousUser } from "./auth";

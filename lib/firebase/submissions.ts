@@ -1,5 +1,5 @@
 import { ref, child, push, set, serverTimestamp } from "firebase/database";
-import { database } from "./config";
+import { getFirebaseDatabase } from "./config";
 import { getAnonymousUser } from "./auth";
 import { getSystemInfo } from "../utils";
 
@@ -14,9 +14,10 @@ import { getSystemInfo } from "../utils";
 export const saveSubmission = async (
   name: string,
   email: string,
-  phone: string
+  phone: string,
 ) => {
   const user = await getAnonymousUser();
+  const database = getFirebaseDatabase();
   const submissionData = {
     name,
     email,

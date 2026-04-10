@@ -1,5 +1,5 @@
 import { ref, get, set, onValue, off } from "firebase/database";
-import { database } from "./config";
+import { getFirebaseDatabase } from "./config";
 import type {
   SubmissionData,
   ParticipantData,
@@ -13,6 +13,7 @@ import type {
  * @returns {Promise<AdminDashboardData>} Os dados consolidados para o dashboard, ordenados por data de submissão.
  */
 export const getAdminDashboardData = async (): Promise<AdminDashboardData> => {
+  const database = getFirebaseDatabase();
   const submissionsRef = ref(database, "submissions");
   const participantsRef = ref(database, "participants");
   const prizesRef = ref(database, "prizes/remaining");
@@ -43,7 +44,7 @@ export const getAdminDashboardData = async (): Promise<AdminDashboardData> => {
     })
     .sort(
       (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     ); // Ordena do mais novo para o mais antigo
 
   return { submissions: combinedData, remainingPrizes };
@@ -56,6 +57,7 @@ export const getAdminDashboardData = async (): Promise<AdminDashboardData> => {
  * @returns {Promise<void>}
  */
 export const updatePrizeCount = (newCount: number) => {
+  const database = getFirebaseDatabase();
   const prizesRef = ref(database, "prizes/remaining");
   return set(prizesRef, newCount);
 };
@@ -67,6 +69,7 @@ export const updatePrizeCount = (newCount: number) => {
  * @returns {Promise<void>}
  */
 export const clearAllData = async () => {
+  const database = getFirebaseDatabase();
   const submissionsRef = ref(database, "submissions");
   const participantsRef = ref(database, "participants");
 
@@ -93,19 +96,20 @@ export const clearAllData = async () => {
  * }
  */
 export const validateRedeemCode = async (
-  code: string
+  code: string,
 ): Promise<{
   success: boolean;
   message: string;
   participantName?: string;
 }> => {
+  const database = getFirebaseDatabase();
   const participantsRef = ref(database, "participants");
   const participantsSnap = await get(participantsRef);
   const participants = participantsSnap.val() || {};
 
   // Busca o participante com o código fornecido
   const participantEntry = Object.entries(participants).find(
-    ([, data]) => (data as ParticipantData).redeemCode === code.toUpperCase()
+    ([, data]) => (data as ParticipantData).redeemCode === code.toUpperCase(),
   );
 
   if (!participantEntry) {
@@ -114,7 +118,7 @@ export const validateRedeemCode = async (
 
   const [userId, participantData] = participantEntry as [
     string,
-    ParticipantData
+    ParticipantData,
   ];
 
   if (participantData.redeemed) {
@@ -130,14 +134,14 @@ export const validateRedeemCode = async (
   const submissions = submissionsSnap.val() || {};
 
   const submission = Object.values(submissions).find(
-    (sub) => (sub as SubmissionData).userId === userId
+    (sub) => (sub as SubmissionData).userId === userId,
   ) as SubmissionData | undefined;
 
   // Marca como resgatado
   await set(ref(database, `participants/${userId}/redeemed`), true);
   await set(
     ref(database, `participants/${userId}/redeemedAt`),
-    new Date().toISOString()
+    new Date().toISOString(),
   );
 
   return {
@@ -167,8 +171,9 @@ export const subscribeToAdminDashboard = (
   callback: (data: {
     submissions: Array<SubmissionData & { id: string; wonPrize: boolean }>;
     remainingPrizes: number;
-  }) => void
+  }) => void,
 ) => {
+  const database = getFirebaseDatabase();
   const submissionsRef = ref(database, "submissions");
   const participantsRef = ref(database, "participants");
   const prizesRef = ref(database, "prizes/remaining");
@@ -198,7 +203,7 @@ export const subscribeToAdminDashboard = (
       })
       .sort(
         (a, b) =>
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       );
 
     callback({

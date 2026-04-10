@@ -1,5 +1,5 @@
 import { signInAnonymously, onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "./config";
+import { getFirebaseAuth } from "./config";
 
 /**
  * @function getAnonymousUser
@@ -9,7 +9,20 @@ import { auth } from "./config";
  * @returns {Promise<User>} Uma promessa que resolve com o objeto de usuário autenticado.
  */
 export const getAnonymousUser = (): Promise<User> => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    let auth;
+
+    try {
+      auth = getFirebaseAuth();
+    } catch (error) {
+      reject(
+        error instanceof Error
+          ? error
+          : new Error("Falha ao inicializar Firebase Auth."),
+      );
+      return;
+    }
+
     if (auth.currentUser) {
       return resolve(auth.currentUser);
     }
@@ -20,9 +33,12 @@ export const getAnonymousUser = (): Promise<User> => {
       }
     });
     if (!auth.currentUser) {
-      signInAnonymously(auth).catch((error) =>
-        console.error("Falha no login anônimo:", error)
-      );
+      signInAnonymously(auth).catch((error) => {
+        unsubscribe();
+        reject(
+          error instanceof Error ? error : new Error("Falha no login anônimo."),
+        );
+      });
     }
   });
 };
