@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { getAnonymousUser } from "../lib/firebase/auth";
+import { hasFirebaseClientConfig } from "../lib/firebase/config";
 
 /**
  * @component FirebaseAuthInit
@@ -13,6 +14,11 @@ import { getAnonymousUser } from "../lib/firebase/auth";
  */
 export default function FirebaseAuthInit() {
   useEffect(() => {
+    // Evita erro em ambiente sem .env.local configurado.
+    if (!hasFirebaseClientConfig()) {
+      return;
+    }
+
     // Inicializa autenticação anônima ao montar o componente
     getAnonymousUser().catch((error: Error) => {
       console.error("Erro ao inicializar autenticação:", error);
