@@ -2,73 +2,44 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
+import { ArrowRight, ShieldCheck } from "@phosphor-icons/react";
 import { saveSubmission, hasFirebaseClientConfig } from "../../lib/firebase";
-import { Gift, Clock } from "@phosphor-icons/react";
-import Confetti from "../../components/ui/Confetti";
-import LoadingSkeleton from "../../components/ui/LoadingSkeleton";
+import EmergencyAlert from "../../components/ui/EmergencyAlert";
 import type { FormData } from "../../types/index";
+
+/** Duração da "promoção" em segundos: a urgência faz parte da isca. */
+const DURATION = 300;
+
+type Phase = "form" | "alert" | "reveal";
 
 /**
  * @component SorteioPage
- * @description Página principal de sorteio que simula um site legítimo de promoção.
- * @returns {JSX.Element}
+ * @description Isca de engenharia social: parece um sorteio comum, com urgência e
+ * recompensa. Depois do envio, mostra um alerta de emergência e, em seguida,
+ * revela que tudo foi uma simulação.
  */
 export default function SorteioPage() {
-  // --- ESTADOS DO COMPONENTE ---
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    email: "",
-    phone: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [submitted, setSubmitted] = useState<boolean>(false);
-  const [countdown, setCountdown] = useState<number>(300); // 5 minutos em segundos
-  const [showConfetti, setShowConfetti] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [formData, setFormData] = useState<FormData>({ name: "", email: "", phone: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [phase, setPhase] = useState<Phase>("form");
+  const [countdown, setCountdown] = useState(DURATION);
 
-  // --- EFEITO DE LOADING INICIAL ---
   useEffect(() => {
-    // Simula carregamento inicial da página
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // --- EFEITO PARA O CRONÔMETRO REGRESSIVO ---
-  useEffect(() => {
-    if (countdown <= 0) {
-      return;
-    }
-    const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
+    if (countdown <= 0 || phase !== "form") return;
+    const timer = setInterval(() => setCountdown((prev) => prev - 1), 1000);
     return () => clearInterval(timer);
-  }, [countdown]);
+  }, [countdown, phase]);
 
-  /**
-   * @function handleSubmit
-   * @description Lida com a submissão do formulário e salva os dados.
-   * @param {FormEvent<HTMLFormElement>} e - O evento de submissão do formulário.
-   */
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSubmitting) return;
-
     setIsSubmitting(true);
 
     try {
-      // Simula um delay para a "processamento"
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Envia os dados para o Firebase
+      // Pequena espera para parecer "processamento"
+      await new Promise((resolve) => setTimeout(resolve, 1200));
       await saveSubmission(formData.name, formData.email, formData.phone);
-
-      // Ativa confetes por 4 segundos
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 4000);
-
-      setSubmitted(true);
+      setPhase("alert");
     } catch (error) {
       console.error("Erro ao enviar:", error);
       alert(
@@ -81,246 +52,198 @@ export default function SorteioPage() {
     }
   };
 
-  /**
-   * @function handleChange
-   * @description Atualiza o estado do formulário conforme o usuário digita.
-   * @param {React.ChangeEvent<HTMLInputElement>} e - O evento de mudança do input.
-   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
-    // Aplica máscara de telefone brasileiro
-    if (name === "phone") {
-      const formattedPhone = formatPhoneNumber(value);
-      setFormData((prev) => ({ ...prev, [name]: formattedPhone }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: name === "phone" ? formatPhoneNumber(value) : value }));
   };
 
-  /**
-   * @function formatPhoneNumber
-   * @description Formata o número de telefone no padrão brasileiro (xx) xxxxx-xxxx.
-   * @param {string} value - O valor do input.
-   * @returns {string} O número formatado.
-   */
-  const formatPhoneNumber = (value: string) => {
-    // Remove tudo que não é número
-    const numbers = value.replace(/\D/g, "");
-    
-    // Limita a 11 dígitos (DDD + 9 dígitos)
-    const truncated = numbers.slice(0, 11);
-    
-    // Aplica a formatação
-    if (truncated.length <= 2) {
-      return truncated;
-    } else if (truncated.length <= 7) {
-      return `(${truncated.slice(0, 2)}) ${truncated.slice(2)}`;
-    } else {
-      return `(${truncated.slice(0, 2)}) ${truncated.slice(2, 7)}-${truncated.slice(7)}`;
-    }
-  };
-
-  /**
-   * @function formatTime
-   * @description Formata o tempo restante em segundos para o formato MM:SS.
-   * @param {number} seconds - O total de segundos.
-   * @returns {string} O tempo formatado.
-   */
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
-      .toString()
-      .padStart(2, "0")}`;
-  };
+  const expired = countdown <= 0;
 
   return (
-    <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-red-500 p-4 page-transition">
-      {/* Confetes quando ganha */}
-      {showConfetti && <Confetti />}
+    <main className="flex min-h-dvh flex-col bg-paper text-ink">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 py-8 sm:py-14">
+        {phase === "reveal" ? (
+          <Reveal />
+        ) : (
+          <>
+            <header className="mb-6 flex items-center justify-between">
+              <p className="font-mono text-xs tracking-wide text-ink-muted">ENTEC 2025</p>
+              <p className="flex items-center gap-2 font-mono text-xs text-alert">
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-alert opacity-60 motion-reduce:hidden" />
+                  <span className="relative inline-flex size-2 rounded-full bg-alert" />
+                </span>
+                ao vivo
+              </p>
+            </header>
 
-      {/* Loading Skeleton */}
-      {isLoading ? (
-        <LoadingSkeleton />
-      ) : (
-        <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-slide-in-up">
-          {!submitted ? (
-            <>
-              {/* Header com countdown */}
-              <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-6 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Gift
-                    size={40}
-                    weight="fill"
-                    className="text-white animate-bounce-subtle"
+            <section className="fade-up rounded-2xl border border-line bg-white p-6 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-8">
+              <p className="text-sm font-medium text-accent">Sorteio relâmpago</p>
+              <h1 className="mt-2 text-3xl leading-tight font-semibold tracking-tight">
+                Ganhe um Ouro Branco agora
+              </h1>
+              <p className="mt-3 leading-relaxed text-ink-muted">
+                São só 30 unidades. Preencha seus dados para entrar no sorteio desta rodada.
+              </p>
+
+              <div className="mt-6">
+                <div className="flex items-baseline justify-between text-sm">
+                  <span className="text-ink-muted">{expired ? "Rodada encerrada" : "Encerra em"}</span>
+                  <span className="font-mono font-medium tabular-nums">{formatTime(countdown)}</span>
+                </div>
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-line">
+                  <div
+                    className="h-full rounded-full bg-accent transition-[width] duration-1000 ease-linear"
+                    style={{ width: `${(countdown / DURATION) * 100}%` }}
                   />
-                  <h1 className="text-3xl md:text-4xl font-bold text-white">
-                    SORTEIO RELÂMPAGO!
-                  </h1>
-                </div>
-                <p className="text-white text-lg font-semibold">
-                  Ganhe um delicioso Ouro Branco! 🍫
-                </p>
-                <div className="mt-4 flex items-center justify-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg p-3 max-w-xs mx-auto animate-pulse-glow">
-                  <Clock size={24} className="text-white" weight="bold" />
-                  <span className="text-2xl font-bold text-white">
-                    {formatTime(countdown)}
-                  </span>
-                </div>
-                <p className="text-white/90 text-sm mt-2">
-                  ⚡ Promoção termina em breve!
-                </p>
-              </div>
-
-              {/* Formulário */}
-              <div className="p-8">
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-                  <p className="text-yellow-800 font-semibold">
-                    🎉 Apenas preencha o formulário para participar!
-                  </p>
-                  <p className="text-yellow-700 text-sm mt-1">
-                    São apenas 30 Ouro Branco disponíveis. Corre!
-                  </p>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div>
-                    <label
-                      htmlFor="name"
-                      className="block text-gray-700 font-semibold mb-2"
-                    >
-                      Seu Nome Completo *
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full border-2 border-gray-300 p-3 rounded-lg focus:outline-none focus:border-purple-500 text-gray-800"
-                      placeholder="Ex: João da Silva"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="block text-gray-700 font-semibold mb-2"
-                    >
-                      Seu E-mail *
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full border-2 border-gray-300 p-3 rounded-lg focus:outline-none focus:border-purple-500 text-gray-800"
-                      placeholder="seuemail@exemplo.com"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="phone"
-                      className="block text-gray-700 font-semibold mb-2"
-                    >
-                      Telefone (opcional)
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full border-2 border-gray-300 p-3 rounded-lg focus:outline-none focus:border-purple-500 text-gray-800"
-                      placeholder="(11) 99999-9999"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || countdown <= 0}
-                    className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-lg p-4 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
-                  >
-                    {isSubmitting
-                      ? "Processando..."
-                      : countdown <= 0
-                      ? "⏰ PROMOÇÃO ENCERRADA"
-                      : "🎁 QUERO PARTICIPAR DO SORTEIO!"}
-                  </button>
-
-                  <p className="text-gray-500 text-xs text-center mt-4">
-                    Ao participar, você concorda com nossos termos e condições.
-                  </p>
-                </form>
-              </div>
-            </>
-          ) : (
-            // --- TELA DE "SUCESSO" / REVELAÇÃO ---
-            <div className="p-8 text-center animate-card-flip">
-              <div className="mb-6">
-                <div className="inline-block p-4 bg-red-100 rounded-full mb-4 animate-bounce-subtle">
-                  <svg
-                    className="w-16 h-16 text-red-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                </div>
-                <h2 className="text-3xl font-bold text-red-600 mb-4">
-                  ATENÇÃO: DADOS CAPTURADOS!
-                </h2>
-                <p className="text-gray-700 text-lg mb-4">
-                  Você acabou de entregar suas informações pessoais para um site
-                  desconhecido.
-                </p>
-                <p className="text-gray-600 mb-6">
-                  Em uma situação real, seus dados poderiam estar sendo
-                  vendidos, usados para spam, phishing ou golpes mais
-                  elaborados.
-                </p>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-left">
-                  <p className="text-yellow-800 font-semibold mb-2">
-                    ⚠️ O que golpistas fariam com seus dados:
-                  </p>
-                  <ul className="text-yellow-700 text-sm space-y-1 list-disc list-inside">
-                    <li>Enviar emails de phishing personalizados</li>
-                    <li>Vender sua lista de contatos</li>
-                    <li>Aplicar golpes via WhatsApp/SMS</li>
-                    <li>Criar perfis falsos em seu nome</li>
-                  </ul>
-                </div>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left">
-                  <p className="text-red-800 font-extrabold mb-2">
-                    ⚠️ <u>IMPORTANTE:</u>
-                  </p>
-                  <p className="text-red-700 font-semibold text-sm">
-                    ‼️OS DADOS INFORMADOS FORAM USADOS APENAS PARA FINS
-                    ACADÊMICOS.
-                  </p>
-                  <p className="text-red-700 font-semibold text-sm">
-                    ‼️NENHUMA INFORMAÇÃO SERÁ UTILIZADA POR TERCEIROS.
-                  </p>
                 </div>
               </div>
-              <Link
-                href="/conscientizacao"
-                className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg py-4 px-8 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg"
-              >
-                Entenda como se proteger →
-              </Link>
-            </div>
-          )}
-        </div>
-      )}
+
+              <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+                <Field label="Nome completo" htmlFor="name">
+                  <input
+                    id="name"
+                    type="text"
+                    name="name"
+                    autoComplete="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    placeholder="Ex.: João da Silva"
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="E-mail" htmlFor="email">
+                  <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="voce@email.com"
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Telefone" hint="opcional" htmlFor="phone">
+                  <input
+                    id="phone"
+                    type="tel"
+                    name="phone"
+                    autoComplete="tel"
+                    inputMode="numeric"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="(34) 99999-9999"
+                    className={inputClass}
+                  />
+                </Field>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting || expired}
+                  className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-ink font-semibold text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Enviando…
+                    </>
+                  ) : expired ? (
+                    "Rodada encerrada"
+                  ) : (
+                    "Participar do sorteio"
+                  )}
+                </button>
+                <p className="text-center text-xs text-ink-muted">
+                  Ao participar, você concorda com os termos do sorteio.
+                </p>
+              </form>
+            </section>
+
+            <p className="mt-auto pt-8 text-center text-xs text-ink-muted">Sorteio Relâmpago · 2025</p>
+          </>
+        )}
+      </div>
+
+      {phase === "alert" ? (
+        <EmergencyAlert
+          name={formData.name}
+          email={formData.email}
+          hasPhone={formData.phone.trim().length > 0}
+          onAcknowledge={() => setPhase("reveal")}
+        />
+      ) : null}
     </main>
   );
+}
+
+/** Tela calma depois do alerta: revela a simulação e leva à explicação. */
+function Reveal() {
+  return (
+    <section className="fade-up my-auto">
+      <p className="font-mono text-xs tracking-wide text-ink-muted">SIMULAÇÃO · ENTEC 2025</p>
+      <h1 className="mt-3 text-4xl leading-[1.1] font-semibold tracking-tight">Calma. Isso foi um teste.</h1>
+      <p className="mt-4 text-lg leading-relaxed text-ink-muted">
+        Este sorteio era uma isca de engenharia social, criada por alunos de Engenharia da Computação e Elétrica da
+        Uniube. Em poucos segundos, você entregou seus dados pessoais para um site que nunca tinha visto.
+      </p>
+
+      <div className="mt-6 flex gap-3 rounded-2xl border border-line bg-white p-4">
+        <ShieldCheck size={24} weight="fill" className="mt-0.5 shrink-0 text-emerald-700" aria-hidden />
+        <p className="text-sm leading-relaxed">
+          <strong className="font-semibold">Seus dados estão seguros.</strong> Eles ficam só com o projeto, para fins
+          acadêmicos, e não serão repassados a ninguém.
+        </p>
+      </div>
+
+      <Link
+        href="/conscientizacao"
+        className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-ink font-semibold text-white transition-colors hover:bg-black"
+      >
+        Entender o golpe
+        <ArrowRight size={18} weight="bold" aria-hidden />
+      </Link>
+    </section>
+  );
+}
+
+const inputClass =
+  "h-12 w-full rounded-xl border border-line bg-paper/60 px-4 text-ink placeholder:text-stone-400 transition-colors focus:border-accent focus:bg-white focus:outline-none focus:ring-4 focus:ring-accent/15";
+
+function Field({
+  label,
+  hint,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  htmlFor: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label htmlFor={htmlFor} className="mb-1.5 flex items-baseline gap-2 text-sm font-medium">
+        {label}
+        {hint ? <span className="font-normal text-ink-muted">{hint}</span> : null}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+/** Formata o telefone no padrão (xx) xxxxx-xxxx. */
+function formatPhoneNumber(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+/** Converte segundos para MM:SS. */
+function formatTime(seconds: number) {
+  const s = Math.max(seconds, 0);
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }

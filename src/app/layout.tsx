@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono } from "next/font/google";
+import { Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import FirebaseAuthInit from "../../components/FirebaseAuthInit";
 
 /**
- * @description Configuração da fonte IBM Plex Mono para ser usada em toda a aplicação,
- * garantindo uma estética de terminal.
+ * @description Inter no texto e IBM Plex Mono em rótulos e códigos.
  */
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
+
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["400", "500", "700"],
+  variable: "--font-plex-mono",
 });
 
 /**
@@ -47,7 +52,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <body className={`${ibmPlexMono.className} bg-black`}>
+      <body className={`${inter.variable} ${ibmPlexMono.variable} font-sans antialiased`}>
         <FirebaseAuthInit />
         {children}
       </body>

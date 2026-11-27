@@ -1,8 +1,77 @@
 @import "tailwindcss";
 
+/* Paleta das páginas públicas: papel claro, tinta escura, vermelho só para alerta */
+/* "inline": as variáveis das fontes são definidas pelo next/font no <body> */
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+@theme {
+  --color-paper: #f7f5f0;
+  --color-ink: #1c1917;
+  --color-ink-muted: #57534e;
+  --color-line: #e7e5e4;
+  --color-accent: #b45309;
+  --color-alert: #dc2626;
+}
+
 :root {
-  --background: #000000;
-  --foreground: #ffffff;
+  --background: #f7f5f0;
+  --foreground: #1c1917;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Alerta de emergência: borda piscando e leve tremida ao aparecer */
+@keyframes alert-flash {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(220 38 38 / 0); border-color: rgb(220 38 38 / 0.5); }
+  50% { box-shadow: 0 0 0 6px rgb(220 38 38 / 0.35); border-color: rgb(220 38 38 / 1); }
+}
+
+@keyframes alert-in {
+  0% { transform: translateY(-24px) scale(0.98); opacity: 0; }
+  60% { transform: translateY(0) scale(1); opacity: 1; }
+  70% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+  90% { transform: translateX(-3px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes backdrop-pulse {
+  0%, 100% { background-color: rgb(12 10 9 / 0.92); }
+  50% { background-color: rgb(69 10 10 / 0.92); }
+}
+
+.alert-card {
+  animation: alert-in 0.6s ease-out both, alert-flash 1s ease-in-out 0.6s infinite;
+}
+
+.alert-backdrop {
+  animation: backdrop-pulse 1s ease-in-out infinite;
+}
+
+@keyframes fade-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.fade-up {
+  animation: fade-up 0.45s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-card,
+  .alert-backdrop,
+  .fade-up {
+    animation: none;
+  }
+  .alert-card {
+    border-color: rgb(220 38 38);
+  }
 }
 
 /* Animações customizadas */
