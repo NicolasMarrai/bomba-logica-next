@@ -80,7 +80,7 @@ export default function SorteioPage() {
             <section className="fade-up rounded-2xl border border-line bg-white p-6 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-8">
               <p className="text-sm font-medium text-accent">Sorteio relâmpago</p>
               <h1 className="mt-2 text-3xl leading-tight font-semibold tracking-tight">
-                Ganhe um Ouro Branco agora
+                Ganhe um brinde agora
               </h1>
               <p className="mt-3 leading-relaxed text-ink-muted">
                 São só 30 unidades. Preencha seus dados para entrar no sorteio desta rodada.
