@@ -49,7 +49,7 @@
 ### Acessar o Painel
 
 1. Abra: `https://seu-site.com/admin`
-2. Digite a senha configurada no `.env.local`
+2. Entre com o e-mail e a senha da conta de admin do Firebase (veja `docs/SEGURANCA_ADMIN.md`)
 3. Mantenha aberto durante a feira
 
 ### O que você vê no painel:
@@ -165,7 +165,7 @@ Durante a feira, tenha à mão:
 - **Email do Firebase**: [seu-email]
 - **Link do GitHub**: [repositório]
 - **Link do site**: [URL da Vercel]
-- **Senha do admin**: [guarde em local seguro]
+- **Conta de admin**: e-mail e senha do Firebase Authentication (guarde em local seguro)
 
 ---
 

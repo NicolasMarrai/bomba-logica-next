@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
-import { saveSubmission } from "../../lib/firebase";
+import { saveSubmission, hasFirebaseClientConfig } from "../../lib/firebase";
 import { Gift, Clock } from "@phosphor-icons/react";
 import Confetti from "../../components/ui/Confetti";
 import LoadingSkeleton from "../../components/ui/LoadingSkeleton";
@@ -64,8 +64,6 @@ export default function SorteioPage() {
       // Envia os dados para o Firebase
       await saveSubmission(formData.name, formData.email, formData.phone);
 
-      console.log("Dados capturados:", formData);
-
       // Ativa confetes por 4 segundos
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 4000);
@@ -73,7 +71,11 @@ export default function SorteioPage() {
       setSubmitted(true);
     } catch (error) {
       console.error("Erro ao enviar:", error);
-      alert("Erro ao processar. Tente novamente.");
+      alert(
+        hasFirebaseClientConfig()
+          ? "Não foi possível enviar agora. Verifique sua conexão e tente novamente."
+          : "O sistema está temporariamente indisponível. Tente novamente mais tarde.",
+      );
     } finally {
       setIsSubmitting(false);
     }

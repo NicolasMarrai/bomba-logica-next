@@ -4,6 +4,11 @@ import {
   subscribeToAdminDashboard,
   clearAllData,
   validateRedeemCode,
+  signInAdmin,
+  signOutAdmin,
+  isAdmin,
+  onAuthChange,
+  hasFirebaseClientConfig,
 } from "../lib/firebase";
 import type { Submission } from "../types/index";
 
@@ -15,10 +20,15 @@ import type { Submission } from "../types/index";
 interface UseAdminDashboardReturn {
   // Estados de autenticação
   isAuthenticated: boolean;
+  isCheckingSession: boolean;
+  isLoggingIn: boolean;
+  email: string;
+  setEmail: (email: string) => void;
   password: string;
   error: string;
   setPassword: (password: string) => void;
-  handleLogin: () => void;
+  handleLogin: () => Promise<void>;
+  handleLogout: () => Promise<void>;
 
   // Estados de dados
   submissions: Submission[];
@@ -66,7 +76,7 @@ interface UseAdminDashboardReturn {
  * Encapsula estados de autenticação, dados, prêmios, validação de códigos e funções utilitárias.
  *
  * Funcionalidades:
- * - Autenticação com senha
+ * - Autenticação com e-mail e senha (Firebase Authentication) e checagem de /admins/<uid>
  * - Gerenciamento de submissões e prêmios em tempo real
  * - Validação de códigos de resgate
  * - Limpeza de dados de teste
@@ -87,6 +97,9 @@ interface UseAdminDashboardReturn {
 export function useAdminDashboard(): UseAdminDashboardReturn {
   // --- ESTADOS DE AUTENTICAÇÃO ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
@@ -114,9 +127,6 @@ export function useAdminDashboard(): UseAdminDashboardReturn {
 
   // --- ESTADOS DE VISIBILIDADE DE CÓDIGOS ---
   const [visibleCodes, setVisibleCodes] = useState<Set<string>>(new Set());
-
-  // Senha carregada a partir de variáveis de ambiente para segurança
-  const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
   /**
    * @function maskEmail
@@ -162,17 +172,82 @@ export function useAdminDashboard(): UseAdminDashboardReturn {
   }, []);
 
   /**
-   * @function handleLogin
-   * @description Valida a senha inserida pelo usuário e libera o acesso ao painel.
+   * @effect Sessão
+   * @description Restaura a sessão ao abrir a página (o Firebase mantém o login salvo)
+   * e libera o painel só se a conta estiver cadastrada em /admins.
    */
-  const handleLogin = useCallback(() => {
-    if (password === correctPassword) {
-      setIsAuthenticated(true);
-      setError("");
-    } else {
-      setError("Senha incorreta.");
+  useEffect(() => {
+    if (!hasFirebaseClientConfig()) {
+      setError(
+        "Firebase não configurado neste ambiente. Confira as variáveis de ambiente.",
+      );
+      setIsCheckingSession(false);
+      return;
     }
-  }, [password, correctPassword]);
+
+    return onAuthChange(async (user) => {
+      try {
+        setIsAuthenticated(user ? await isAdmin(user) : false);
+      } catch (e) {
+        console.error("Erro ao verificar permissão de administrador:", e);
+        setIsAuthenticated(false);
+      } finally {
+        setIsCheckingSession(false);
+      }
+    });
+  }, []);
+
+  /**
+   * @function handleLogin
+   * @description Faz login com e-mail e senha no Firebase e confere se a conta é administradora.
+   * A senha é verificada pelo Firebase; nada sensível fica no código do site.
+   */
+  const handleLogin = useCallback(async () => {
+    if (!email.trim() || !password) {
+      setError("Informe e-mail e senha.");
+      return;
+    }
+
+    setIsLoggingIn(true);
+    setError("");
+    try {
+      const user = await signInAdmin(email, password);
+      if (await isAdmin(user)) {
+        setIsAuthenticated(true);
+        setPassword("");
+      } else {
+        await signOutAdmin();
+        setError("Esta conta não tem permissão de administrador.");
+      }
+    } catch (e) {
+      const code = (e as { code?: string }).code ?? "";
+      if (
+        code === "auth/invalid-credential" ||
+        code === "auth/wrong-password" ||
+        code === "auth/user-not-found" ||
+        code === "auth/invalid-email"
+      ) {
+        setError("E-mail ou senha incorretos.");
+      } else if (code === "auth/too-many-requests") {
+        setError("Muitas tentativas. Aguarde alguns minutos e tente de novo.");
+      } else {
+        console.error("Erro no login:", e);
+        setError("Não foi possível entrar. Tente novamente.");
+      }
+    } finally {
+      setIsLoggingIn(false);
+    }
+  }, [email, password]);
+
+  /**
+   * @function handleLogout
+   * @description Encerra a sessão do administrador.
+   */
+  const handleLogout = useCallback(async () => {
+    await signOutAdmin();
+    setIsAuthenticated(false);
+    setSubmissions([]);
+  }, []);
 
   /**
    * @function handlePrizeUpdate
@@ -284,10 +359,15 @@ export function useAdminDashboard(): UseAdminDashboardReturn {
   return {
     // Autenticação
     isAuthenticated,
+    isCheckingSession,
+    isLoggingIn,
+    email,
+    setEmail,
     password,
     error,
     setPassword,
     handleLogin,
+    handleLogout,
 
     // Dados
     submissions,

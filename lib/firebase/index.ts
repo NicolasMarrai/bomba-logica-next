@@ -9,7 +9,13 @@ export {
 } from "./config";
 
 // Autenticação
-export { getAnonymousUser } from "./auth";
+export {
+  getAnonymousUser,
+  signInAdmin,
+  signOutAdmin,
+  isAdmin,
+  onAuthChange,
+} from "./auth";
 
 // Submissões
 export { saveSubmission } from "./submissions";
