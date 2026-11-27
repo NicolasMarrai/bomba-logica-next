@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Gift, X, Sparkle } from '@phosphor-icons/react';
+import { X } from '@phosphor-icons/react';
 import { handleSorteio } from '../../lib/firebase';
 
 /**
@@ -62,121 +62,90 @@ export default function SorteioModal({ onClose }: SorteioModalProps) {
     }
   };
 
+  const won = Boolean(result?.won);
+  const redeemed = Boolean(result?.redeemed);
+
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-gradient-to-br from-purple-900 to-pink-900 border-2 border-yellow-400 rounded-2xl shadow-2xl w-full max-w-md text-center p-8 relative my-auto max-h-[95vh] overflow-y-auto modal-scroll">
-        {/* Botão para fechar o modal */}
-        <button 
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sorteio-title"
+    >
+      <div className="fade-up relative max-h-[95vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-7 text-ink shadow-xl sm:p-8">
+        <button
           onClick={handleClose}
-          className="absolute top-3 right-3 text-gray-300 hover:text-white transition-colors bg-black/30 rounded-full p-1"
+          className="absolute top-4 right-4 rounded-full p-1.5 text-ink-muted transition-colors hover:bg-paper hover:text-ink"
           aria-label="Fechar"
         >
-          <X size={24} weight="bold" />
+          <X size={20} weight="bold" />
         </button>
 
-        <div className="mb-6">
-          <div className="flex justify-center mb-4">
-            <div className="bg-yellow-400/20 p-4 rounded-full">
-              <Gift size={48} weight="fill" className="text-yellow-400" />
-            </div>
-          </div>
-          <h2 className="text-3xl font-bold text-yellow-400 mb-2">
-            Sorteio Verdadeiro!
-          </h2>
-          <p className="text-white/80">
-            Agora que você aprendeu sobre os perigos, vamos fazer o sorteio de verdade! 🎉
-          </p>
-        </div>
-        
-        {/* Exibido enquanto o sorteio está em andamento */}
+        <p className="font-mono text-xs tracking-wide text-accent">AGORA É DE VERDADE</p>
+        <h2 id="sorteio-title" className="mt-2 text-2xl font-semibold tracking-tight">
+          Sorteio de Ouro Branco
+        </h2>
+        <p className="mt-2 leading-relaxed text-ink-muted">
+          Você aprendeu como funciona o golpe. Como agradecimento, este sorteio é real e não pede nenhum dado.
+        </p>
+
         {loading && (
-          <div className="space-y-6 my-8">
-            <div className="flex justify-center">
-              <Sparkle size={64} className="text-yellow-400 animate-spin" weight="fill" />
-            </div>
-            <div className="space-y-2">
-              <p className="text-xl text-white font-semibold">Girando a roda da sorte...</p>
-              <div className="flex justify-center gap-2">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-              </div>
-            </div>
+          <div className="my-10 flex flex-col items-center gap-4" aria-live="polite">
+            <span className="size-10 animate-spin rounded-full border-4 border-line border-t-accent" />
+            <p className="font-medium">Sorteando…</p>
           </div>
         )}
 
-        {/* Exibido após o sorteio ser concluído */}
         {!loading && result && (
-          <div className="space-y-6 my-8">
-            <div className={`text-2xl font-bold ${result.won ? 'text-green-400' : 'text-orange-400'}`}>
-              {result.won ? (result.redeemed ? '✅ JÁ RESGATADO!' : '🎊 PARABÉNS! 🎊') : '😢 Que pena!'}
+          <div className="mt-7 space-y-5" aria-live="polite">
+            <div>
+              <p className={`text-xl font-semibold ${won ? 'text-emerald-700' : 'text-ink'}`}>
+                {won ? (redeemed ? 'Prêmio já resgatado' : 'Você ganhou!') : 'Não foi desta vez'}
+              </p>
+              <p className="mt-1 leading-relaxed text-ink-muted">{result.message}</p>
             </div>
-            <p className={`text-lg ${result.won ? 'text-white' : 'text-gray-200'}`}>
-              {result.message}
-            </p>
-            {result.won && result.redeemCode && (
-              <div className={`${result.redeemed ? 'bg-gray-500/20 border-gray-500/50' : 'bg-green-500/20 border-green-500/50'} border rounded-lg p-4 space-y-3`}>
-                {!result.redeemed && (
-                  <p className="text-green-300 text-sm">
-                    🍫 Informe este código para a equipe e resgate seu Ouro Branco!
-                  </p>
-                )}
-                
-                {/* Código de Resgate em Destaque */}
-                <div className={`bg-black/40 rounded-lg p-4 border-2 ${result.redeemed ? 'border-gray-400' : 'border-green-400'}`}>
-                  <p className="text-gray-300 text-xs uppercase tracking-wider mb-2">
-                    Código de Resgate:
-                  </p>
-                  <p className={`text-5xl font-black ${result.redeemed ? 'text-gray-400' : 'text-green-400'} tracking-[0.5em] text-center font-mono`}>
-                    {result.redeemCode}
-                  </p>
-                </div>
 
-                {result.redeemed ? (
-                  <p className="text-gray-400 text-xs">
-                    ℹ️ Este prêmio já foi resgatado anteriormente.
-                  </p>
-                ) : (
-                  <p className="text-yellow-300 text-xs">
-                    ⚠️ Guarde este código! Ele será necessário para retirar seu prêmio.
-                  </p>
-                )}
+            {won && result.redeemCode && (
+              <div className={`rounded-2xl border p-5 text-center ${redeemed ? 'border-line bg-paper' : 'border-emerald-200 bg-emerald-50'}`}>
+                <p className="font-mono text-xs tracking-wide text-ink-muted">CÓDIGO DE RESGATE</p>
+                <p className={`mt-2 font-mono text-5xl font-bold tracking-[0.35em] ${redeemed ? 'text-ink-muted' : 'text-emerald-800'}`}>
+                  {result.redeemCode}
+                </p>
+                <p className="mt-3 text-sm text-ink-muted">
+                  {redeemed
+                    ? 'Este código já foi usado.'
+                    : 'Mostre este código para alguém da equipe e retire seu chocolate.'}
+                </p>
               </div>
             )}
 
-            {/* Diálogo de confirmação antes de fechar */}
-            {showConfirmation && result.won && !result.redeemed ? (
-              <div className="bg-red-500/20 border-2 border-red-500/50 rounded-lg p-4 space-y-3">
-                <p className="text-red-300 font-bold text-lg">
-                  ⚠️ Atenção!
-                </p>
-                <p className="text-white text-sm">
-                  Você anotou ou fotografou o código <span className="font-bold text-yellow-400">{result.redeemCode}</span>?
-                </p>
-                <p className="text-gray-300 text-xs">
-                  Lembre-se de informar este código a um integrante do grupo para validar e receber seu prêmio!
+            {showConfirmation && won && !redeemed ? (
+              <div className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                <p className="leading-relaxed">
+                  Você anotou ou fotografou o código{' '}
+                  <span className="font-mono font-bold">{result.redeemCode}</span>? Sem ele não dá para retirar o prêmio.
                 </p>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowConfirmation(false)}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-all"
+                    className="h-11 flex-1 rounded-xl border border-line bg-white font-semibold transition-colors hover:border-stone-300"
                   >
-                    ❌ Cancelar
+                    Voltar
                   </button>
                   <button
                     onClick={onClose}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all"
+                    className="h-11 flex-1 rounded-xl bg-ink font-semibold text-white transition-colors hover:bg-black"
                   >
-                    ✅ Já guardei!
+                    Já guardei
                   </button>
                 </div>
               </div>
             ) : (
               <button
                 onClick={handleClose}
-                className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold py-3 px-6 rounded-lg hover:from-yellow-500 hover:to-orange-600 transition-all shadow-lg transform hover:scale-105"
+                className="h-12 w-full rounded-xl bg-ink font-semibold text-white transition-colors hover:bg-black"
               >
-                {result.won ? (result.redeemed ? '✅ OK, Entendi' : '🎉 Resgatar Prêmio') : 'Fechar'}
+                {won && !redeemed ? 'Fechar' : 'Ok, entendi'}
               </button>
             )}
           </div>
@@ -185,4 +154,3 @@ export default function SorteioModal({ onClose }: SorteioModalProps) {
     </div>
   );
 }
-

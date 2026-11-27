@@ -3,217 +3,167 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  ShieldWarning,
-  EnvelopeSimple,
-  UserCircle,
-  Warning,
-  CheckCircle,
-} from "@phosphor-icons/react";
+import { Check } from "@phosphor-icons/react";
 import SorteioModal from "../../../components/ui/SorteioModal";
+
+/** Os três gatilhos que a isca usou. */
+const TRIGGERS = [
+  {
+    title: "Urgência",
+    text: "O cronômetro e o “só 30 unidades” existem para você decidir rápido, antes de pensar se o site é confiável.",
+  },
+  {
+    title: "Recompensa",
+    text: "Um prêmio pequeno e fácil de ganhar baixa a guarda. Ninguém desconfia de um chocolate.",
+  },
+  {
+    title: "Pedido de dados",
+    text: "Nome, e-mail e telefone parecem inofensivos, mas são o ponto de partida de quase todo golpe direcionado.",
+  },
+];
+
+/** O que um golpista faria com os dados. */
+const RISKS = [
+  { title: "Phishing personalizado", text: "Mensagens com o seu nome, fingindo ser banco, loja ou faculdade." },
+  { title: "Golpes por WhatsApp e SMS", text: "Com o seu telefone, alguém pode se passar por você ou por um parente." },
+  { title: "Venda de dados", text: "Listas de contatos reais valem dinheiro e circulam entre golpistas." },
+  { title: "Perfis falsos", text: "Somado a fotos e redes sociais, o seu nome vira uma identidade falsa." },
+];
+
+/** Como se proteger. */
+const TIPS = [
+  {
+    title: "Desconfie da pressa",
+    text: "Cronômetro, “últimas vagas” e “só hoje” são técnicas para você não pensar.",
+  },
+  {
+    title: "Confira quem está por trás",
+    text: "Sorteio de verdade tem empresa identificada, regulamento e canal oficial. Pesquise antes.",
+  },
+  {
+    title: "Olhe o endereço do site",
+    text: "Domínios genéricos ou estranhos são um sinal de alerta. Na dúvida, não preencha.",
+  },
+  {
+    title: "Entregue o mínimo",
+    text: "Nenhum sorteio legítimo pede CPF, senha ou dados bancários no cadastro.",
+  },
+  {
+    title: "Use um e-mail separado",
+    text: "Para cadastros duvidosos, um e-mail secundário protege o seu principal.",
+  },
+];
 
 /**
  * @component AwarenessPage
- * @description Página de conscientização que explica os perigos de sorteios falsos e captura de dados.
- * @returns {JSX.Element}
+ * @description Explica a simulação: como a isca funcionou, o que um golpista faria
+ * com os dados e como se proteger. Depois de alguns segundos, abre o sorteio verdadeiro.
  */
 export default function AwarenessPage() {
-  // Estado para controlar a visibilidade do modal de sorteio.
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    // Este timer faz o modal aparecer 8 segundos após a página carregar, incentivando a leitura.
-    const timer = setTimeout(() => {
-      setShowModal(true);
-    }, 8000);
-
-    // Limpa o timer se o componente for desmontado para evitar vazamentos de memória.
+    // O sorteio verdadeiro aparece depois de 8 segundos, para incentivar a leitura
+    const timer = setTimeout(() => setShowModal(true), 8000);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-200 p-4 page-transition">
-      <div className="w-full max-w-4xl bg-white/10 backdrop-blur-lg border border-gray-700/80 p-8 rounded-2xl shadow-2xl animate-slide-in-up">
-        <div className="flex items-center gap-4 border-b border-gray-700/80 pb-4 mb-6 animate-fade-in">
-          <ShieldWarning
-            size={48}
-            className="text-yellow-400 animate-bounce-subtle"
-          />
-          <h1 className="text-3xl md:text-4xl font-bold text-yellow-400">
-            Você Acabou de Cair em uma Armadilha!
+    <main className="min-h-dvh bg-paper text-ink">
+      <article className="mx-auto max-w-2xl px-5 py-14 sm:py-20">
+        <header className="fade-up">
+          <p className="font-mono text-xs tracking-wide text-ink-muted">ENTEC 2025 · ENGENHARIA SOCIAL</p>
+          <h1 className="mt-4 text-4xl leading-[1.08] font-semibold tracking-tight sm:text-5xl">
+            Você acabou de cair num golpe.
           </h1>
-        </div>
+          <p className="mt-5 text-lg leading-relaxed text-ink-muted">
+            Foi de propósito. O sorteio era uma simulação para mostrar como é fácil entregar dados pessoais quando a
+            isca é bem montada. Ninguém está livre disso, e entender o truque é o primeiro passo para não cair.
+          </p>
+        </header>
 
-        <div className="space-y-6 text-lg leading-relaxed">
-          <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
-            <p className="text-white">
-              Você preencheu um formulário de sorteio e entregou seus dados
-              pessoais sem verificar se o site era legítimo. Em uma situação
-              real, suas informações já estariam nas mãos de golpistas.
-            </p>
+        <Section title="Como a isca funcionou">
+          <ol className="divide-y divide-line border-y border-line">
+            {TRIGGERS.map((item, i) => (
+              <li key={item.title} className="grid grid-cols-[2.5rem_1fr] gap-4 py-5">
+                <span className="font-mono text-sm text-accent">{String(i + 1).padStart(2, "0")}</span>
+                <div>
+                  <h3 className="font-semibold">{item.title}</h3>
+                  <p className="mt-1 leading-relaxed text-ink-muted">{item.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Section>
+
+        <Section title="O que um golpista faria com seus dados">
+          <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+            {RISKS.map((item) => (
+              <div key={item.title} className="border-t-2 border-alert/70 pt-3">
+                <h3 className="font-semibold">{item.title}</h3>
+                <p className="mt-1 text-[15px] leading-relaxed text-ink-muted">{item.text}</p>
+              </div>
+            ))}
           </div>
+        </Section>
 
-          <h2 className="text-2xl font-bold text-purple-400 pt-4">
-            Como Funcionam os Golpes de Sorteios Falsos?
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-gray-800/50 p-5 rounded-lg border border-purple-500/30 card-hover">
-              <h3 className="flex items-center gap-2 text-xl font-semibold mb-3 text-purple-300">
-                <EnvelopeSimple size={24} weight="fill" /> Spam em Massa
-              </h3>
-              <p className="text-base text-gray-300">
-                Seu email é adicionado a listas de spam e você passa a receber
-                centenas de emails indesejados, incluindo outros golpes.
-              </p>
-            </div>
-            <div className="bg-gray-800/50 p-5 rounded-lg border border-red-500/30 card-hover">
-              <h3 className="flex items-center gap-2 text-xl font-semibold mb-3 text-red-300">
-                <UserCircle size={24} weight="fill" /> Venda de Dados
-              </h3>
-              <p className="text-base text-gray-300">
-                Suas informações são vendidas para empresas de marketing ou
-                usadas em golpes personalizados de phishing.
-              </p>
-            </div>
-            <div className="bg-gray-800/50 p-5 rounded-lg border border-orange-500/30 card-hover">
-              <h3 className="flex items-center gap-2 text-xl font-semibold mb-3 text-orange-300">
-                <Warning size={24} weight="fill" /> Golpes Dirigidos
-              </h3>
-              <p className="text-base text-gray-300">
-                Criminosos usam seu nome e email para criar mensagens
-                convincentes, fingindo ser empresas conhecidas.
-              </p>
-            </div>
-            <div className="bg-gray-800/50 p-5 rounded-lg border border-yellow-500/30 card-hover">
-              <h3 className="flex items-center gap-2 text-xl font-semibold mb-3 text-yellow-300">
-                <ShieldWarning size={24} weight="fill" /> Roubo de Identidade
-              </h3>
-              <p className="text-base text-gray-300">
-                Com mais dados coletados de outras fontes, podem tentar abrir
-                contas ou fazer compras em seu nome.
-              </p>
-            </div>
-          </div>
-
-          <h2 className="text-2xl font-bold text-green-400 pt-6">
-            Como se Proteger de Sorteios Falsos?
-          </h2>
-          <ul className="space-y-3 text-gray-300">
-            <li className="flex items-start gap-3">
-              <CheckCircle
-                size={24}
-                className="text-green-400 flex-shrink-0 mt-1"
-                weight="fill"
-              />
-              <div>
-                <strong className="text-white">
-                  Verifique a legitimidade:
-                </strong>{" "}
-                Pesquise o nome da promoção no Google. Sorteios reais têm
-                regulamentos claros e empresas conhecidas por trás.
-              </div>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle
-                size={24}
-                className="text-green-400 flex-shrink-0 mt-1"
-                weight="fill"
-              />
-              <div>
-                <strong className="text-white">Desconfie de urgência:</strong>{" "}
-                Cronômetros regressivos e frases como &ldquo;últimas
-                vagas&rdquo; são táticas para forçar decisões rápidas.
-              </div>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle
-                size={24}
-                className="text-green-400 flex-shrink-0 mt-1"
-                weight="fill"
-              />
-              <div>
-                <strong className="text-white">Observe o domínio:</strong> Sites
-                legítimos têm URLs profissionais. Desconfie de domínios
-                estranhos ou muito genéricos.
-              </div>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle
-                size={24}
-                className="text-green-400 flex-shrink-0 mt-1"
-                weight="fill"
-              />
-              <div>
-                <strong className="text-white">
-                  Nunca forneça dados sensíveis:
-                </strong>{" "}
-                Sorteios legítimos não pedem CPF, senhas ou dados bancários no
-                cadastro inicial.
-              </div>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle
-                size={24}
-                className="text-green-400 flex-shrink-0 mt-1"
-                weight="fill"
-              />
-              <div>
-                <strong className="text-white">Use emails descartáveis:</strong>{" "}
-                Para sorteios que você não tem certeza, use serviços de email
-                temporário.
-              </div>
-            </li>
+        <Section title="Como se proteger">
+          <ul className="space-y-4">
+            {TIPS.map((item) => (
+              <li key={item.title} className="flex gap-3">
+                <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-white">
+                  <Check size={14} weight="bold" aria-hidden />
+                </span>
+                <p className="leading-relaxed">
+                  <strong className="font-semibold">{item.title}.</strong>{" "}
+                  <span className="text-ink-muted">{item.text}</span>
+                </p>
+              </li>
+            ))}
           </ul>
+        </Section>
 
-          <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-4 mt-6">
-            <p className="text-blue-200">
-              💡 <strong>Dica:</strong> Se algo parece bom demais para ser
-              verdade (prêmios incríveis com participação muito fácil),
-              provavelmente é um golpe!
-            </p>
-          </div>
+        <blockquote className="mt-14 rounded-2xl bg-ink px-6 py-6 text-lg leading-relaxed text-white">
+          Se parece bom demais para ser verdade, provavelmente é golpe.
+        </blockquote>
 
-          <div className="text-center pt-6">
-            <Link
-              href="/"
-              className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-8 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
-            >
-              ← Voltar ao Início
-            </Link>
-          </div>
-
-          {/* Rodapé com informações da UNIUBE e ENTEC */}
-          <div className="mt-8 pt-6 border-t border-gray-700/50 text-center">
-            {/* Logo UNIUBE - versão discreta */}
-            <div className="flex justify-center mb-4">
-              <div className="bg-white/90 px-3 py-1.5 rounded-sm shadow-sm opacity-80 hover:opacity-100 transition-opacity">
-                <Image
-                  src="/logo_uniube.svg"
-                  alt="Logo UNIUBE"
-                  width={120}
-                  height={37}
-                  priority
-                  className="h-auto"
-                />
-              </div>
-            </div>
-            <p className="text-gray-400 text-sm">
-              <strong className="text-white">UNIUBE - Campus Aeroporto</strong>
-            </p>
-            <p className="text-gray-400 text-sm mb-2">
-              Projeto desenvolvido para a{" "}
-              <strong className="text-white">ENTEC 2025</strong>
-            </p>
-            <p className="text-gray-500 text-xs mt-2">
-              Conscientização sobre Segurança Digital e Engenharia Social
-            </p>
-          </div>
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className="flex h-12 flex-1 items-center justify-center rounded-xl bg-accent font-semibold text-white transition-colors hover:bg-amber-800"
+          >
+            Participar do sorteio de verdade
+          </button>
+          <Link
+            href="/"
+            className="flex h-12 flex-1 items-center justify-center rounded-xl border border-line bg-white font-semibold transition-colors hover:border-stone-300"
+          >
+            Voltar ao início
+          </Link>
         </div>
-      </div>
 
-      {/* O modal de sorteio verdadeiro aparecerá sobre este conteúdo após o timer */}
+        <footer className="mt-16 flex flex-col items-center gap-3 border-t border-line pt-8 text-center">
+          <Image src="/logo_uniube.svg" alt="Uniube" width={110} height={34} className="h-auto opacity-80" />
+          <p className="text-sm text-ink-muted">
+            Projeto da <strong className="font-semibold text-ink">ENTEC 2025</strong> · Uniube, Campus Aeroporto
+          </p>
+          <p className="max-w-md text-xs leading-relaxed text-ink-muted">
+            Os dados informados são usados apenas para fins acadêmicos e não serão repassados a terceiros.
+          </p>
+        </footer>
+      </article>
+
       {showModal && <SorteioModal onClose={() => setShowModal(false)} />}
     </main>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-14">
+      <h2 className="mb-6 text-2xl font-semibold tracking-tight">{title}</h2>
+      {children}
+    </section>
   );
 }
