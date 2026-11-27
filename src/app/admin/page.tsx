@@ -14,6 +14,7 @@ import {
   Eye,
   EyeSlash,
   Spinner,
+  SignOut,
 } from "@phosphor-icons/react/dist/ssr";
 import { useAdminDashboard } from "../../../hooks/useAdminDashboard";
 
@@ -26,10 +27,15 @@ export default function AdminPage() {
   // Usando o hook personalizado para gerenciar toda a lógica do admin
   const {
     isAuthenticated,
+    isCheckingSession,
+    isLoggingIn,
+    email,
+    setEmail,
     password,
     error,
     setPassword,
     handleLogin,
+    handleLogout,
     submissions,
     remainingPrizes,
     isLoading,
@@ -57,6 +63,15 @@ export default function AdminPage() {
     maskPhone,
   } = useAdminDashboard();
 
+  // --- VERIFICANDO SESSÃO SALVA ---
+  if (isCheckingSession) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-gray-400">
+        <Spinner size={32} className="animate-spin" />
+      </div>
+    );
+  }
+
   // --- TELA DE LOGIN ---
   if (!isAuthenticated) {
     return (
@@ -65,26 +80,53 @@ export default function AdminPage() {
           <h1 className="text-2xl font-bold text-center mb-6 text-yellow-400">
             Acesso Restrito
           </h1>
-          <div className="space-y-4">
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+          >
             <div>
-              <label className="block mb-2">Senha de Acesso</label>
+              <label htmlFor="admin-email" className="block mb-2">
+                E-mail
+              </label>
               <input
+                id="admin-email"
+                type="email"
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+            </div>
+            <div>
+              <label htmlFor="admin-password" className="block mb-2">
+                Senha
+              </label>
+              <input
+                id="admin-password"
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleLogin()}
                 className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <button
-              onClick={handleLogin}
-              className="w-full flex items-center justify-center gap-2 bg-yellow-500 text-black font-bold py-2 px-4 rounded-md hover:bg-yellow-400"
+              type="submit"
+              disabled={isLoggingIn}
+              className="w-full flex items-center justify-center gap-2 bg-yellow-500 text-black font-bold py-2 px-4 rounded-md hover:bg-yellow-400 disabled:opacity-60"
             >
-              <Lock size={20} />
-              Desbloquear
+              {isLoggingIn ? (
+                <Spinner size={20} className="animate-spin" />
+              ) : (
+                <Lock size={20} />
+              )}
+              Entrar
             </button>
-          </div>
+          </form>
         </div>
       </div>
     );
@@ -94,9 +136,18 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen bg-gray-900 text-gray-200 p-4 md:p-8 page-transition">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-yellow-400 animate-fade-in">
-          Painel Administrativo - Sorteio de Bombons
-        </h1>
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+          <h1 className="text-4xl font-bold text-yellow-400 animate-fade-in">
+            Painel Administrativo - Sorteio de Bombons
+          </h1>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 border border-gray-600 text-gray-300 py-2 px-4 rounded-md hover:bg-gray-800"
+          >
+            <SignOut size={20} />
+            Sair
+          </button>
+        </div>
 
         {/* Cards de Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

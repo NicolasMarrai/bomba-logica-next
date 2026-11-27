@@ -43,7 +43,7 @@ O projeto foi construído com um conjunto de tecnologias modernas para criar uma
 - Visualização de todos os participantes
 - Controle de estoque de prêmios em tempo real
 - Dados do sistema e horário de participação
-- Protegido por senha
+- Login com conta do Firebase Authentication e permissão em `/admins`; dados protegidos pelas regras do banco
 
 ## 📚 Documentação Adicional
 
@@ -51,6 +51,7 @@ Este projeto possui documentação técnica detalhada na pasta `/docs`:
 
 - **[GUIA_FEIRA.md](GUIA_FEIRA.md)** - 🎯 Guia prático para apresentação na ENTEC
 - **[docs/ADMIN_DASHBOARD.md](docs/ADMIN_DASHBOARD.md)** - Documentação do painel administrativo
+- **[docs/SEGURANCA_ADMIN.md](docs/SEGURANCA_ADMIN.md)** - Login do admin, regras do banco e passo a passo de configuração
 - **[docs/ANIMACOES.md](docs/ANIMACOES.md)** - Sistema completo de animações
 - **[docs/LIMPEZA_DADOS.md](docs/LIMPEZA_DADOS.md)** - Manual de limpeza de dados de teste
 - **[docs/MUDANCAS.md](docs/MUDANCAS.md)** - Histórico de mudanças do projeto
@@ -75,7 +76,7 @@ cd bomba-logica-next
 npm install
 
 # Configure as variáveis de ambiente
-# Crie um arquivo .env.local com suas credenciais do Firebase
+# Copie .env.example para .env.local e preencha com as credenciais do Firebase
 ```
 
 ### Executar em Desenvolvimento

@@ -277,7 +277,7 @@ const winRate = (winners / totalParticipants) * 100;
 
 ## 📚 Como Usar Durante a Feira
 
-1. **Login**: Acesse `/admin` com a senha
+1. **Login**: Acesse `/admin` com o e-mail e a senha da conta de admin (veja `SEGURANCA_ADMIN.md`)
 2. **Monitore**: Deixe o painel aberto durante o evento
 3. **Observe**: Cards de estatísticas mostram visão geral
 4. **Analise**: Role para baixo para ver detalhes técnicos

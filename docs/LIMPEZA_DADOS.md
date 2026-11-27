@@ -90,7 +90,7 @@ Sistema seguro para limpar dados de teste do Firebase antes do evento começar, 
    ```
 
 2. **Faça Login**
-   - Digite a senha configurada
+   - Entre com o e-mail e a senha da conta de admin
 
 3. **Localize o Botão**
    - Seção "Controle de Prêmios"
